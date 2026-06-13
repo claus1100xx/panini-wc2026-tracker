@@ -14,11 +14,11 @@
       --panel: #1c2320;
       --panel-2: #232c28;
       --line: #344038;
-      --gold: #e7bb55;
-      --lime: #73d17c;
-      --red: #e15e57;
-      --blue: #67b7dc;
-      --orange: #e79b54;
+      --gold: #d8c393;
+      --lime: #6fb18b;
+      --red: #b14a3f;
+      --blue: #6f9fb1;
+      --orange: #b98759;
       --black: #0b0e0c;
       --shadow: 0 22px 80px rgba(0,0,0,.35);
       --radius: 8px;
@@ -531,10 +531,11 @@
 
     body {
       background:
-        linear-gradient(115deg, rgba(231,187,85,.11), transparent 26%, rgba(103,183,220,.08) 68%, transparent),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0, rgba(255,255,255,.025) 1px, transparent 1px, transparent 72px),
-        repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0, rgba(255,255,255,.018) 1px, transparent 1px, transparent 72px),
-        linear-gradient(180deg, #080b09 0%, #141b16 54%, #080b09 100%);
+        radial-gradient(circle at 74% 12%, rgba(111,159,177,.13), transparent 28%),
+        linear-gradient(115deg, rgba(216,195,147,.09), transparent 26%, rgba(111,177,139,.06) 68%, transparent),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0, rgba(255,255,255,.018) 1px, transparent 1px, transparent 84px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0, rgba(255,255,255,.014) 1px, transparent 1px, transparent 84px),
+        linear-gradient(180deg, #090b0a 0%, #121815 54%, #090b0a 100%);
     }
     body:before {
       content: "";
@@ -647,23 +648,24 @@
       width: max-content;
       max-width: 100%;
       margin-bottom: 12px;
-      padding: 7px 10px;
+      padding: 7px 11px;
       border-radius: 6px;
-      background: linear-gradient(90deg, #ffe45c 0 62%, #e1272f 62% 100%);
-      color: #12100a;
+      background: linear-gradient(135deg, rgba(225,211,178,.16), rgba(147,168,152,.1));
+      border: 1px solid rgba(225,211,178,.26);
+      color: #e8dcc4;
       font-size: .72rem;
-      font-weight: 1000;
+      font-weight: 900;
       text-transform: uppercase;
       letter-spacing: .14em;
-      box-shadow: 0 10px 28px rgba(225,39,47,.2);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
     }
 
     .topbar {
-      border-color: rgba(255,228,92,.42);
+      border-color: rgba(225,211,178,.18);
       background:
-        linear-gradient(100deg, rgba(225,39,47,.86) 0 11%, transparent 11% 13%, rgba(255,228,92,.88) 13% 17%, transparent 17% 100%),
-        radial-gradient(circle at 70% 18%, rgba(255,228,92,.18), transparent 32%),
-        linear-gradient(135deg, rgba(15,18,15,.9), rgba(36,44,35,.86) 56%, rgba(11,14,12,.94));
+        linear-gradient(110deg, rgba(225,211,178,.16) 0 1px, transparent 1px 16%),
+        radial-gradient(circle at 72% 18%, rgba(147,168,152,.18), transparent 35%),
+        linear-gradient(135deg, rgba(12,15,14,.96), rgba(29,36,33,.9) 54%, rgba(9,11,10,.98));
     }
     .topbar:before {
       content: "";
@@ -671,68 +673,68 @@
       inset: 0;
       pointer-events: none;
       background:
-        repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 2px, transparent 2px 12px),
-        linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+        repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 1px, transparent 1px 14px),
+        linear-gradient(90deg, transparent, rgba(225,211,178,.08), transparent);
       mix-blend-mode: screen;
-      opacity: .65;
+      opacity: .52;
     }
     .topbar h1 {
       font-family: Georgia, Times New Roman, serif;
       text-transform: none;
-      color: #fff8d6;
+      color: #f4ead7;
     }
     .topbar .tagline {
       max-width: 690px;
-      color: rgba(255,248,214,.82);
+      color: rgba(232,220,196,.76);
     }
     .user-panel {
-      border-top: 5px solid #ffe45c;
+      border-top: 4px solid rgba(225,211,178,.72);
       box-shadow: 0 28px 80px rgba(0,0,0,.34), inset 0 0 0 1px rgba(255,255,255,.06);
     }
     .btn.primary {
-      background: linear-gradient(135deg, #ffe45c, #f7be26 58%, #e1272f 58% 100%);
-      color: #12100a;
-      border-color: rgba(255,228,92,.9);
-      box-shadow: 0 12px 28px rgba(255,228,92,.16);
+      background: linear-gradient(135deg, #e8dcc4, #bda775);
+      color: #11130f;
+      border-color: rgba(232,220,196,.78);
+      box-shadow: 0 12px 28px rgba(189,167,117,.12);
     }
     .score {
-      border-color: rgba(255,228,92,.24);
+      border-color: rgba(225,211,178,.16);
       background:
-        linear-gradient(90deg, rgba(225,39,47,.16), transparent 24%),
+        linear-gradient(90deg, rgba(225,211,178,.08), transparent 28%),
         rgba(28,35,32,.92);
     }
-    .ring .fill { stroke: #ffe45c; }
+    .ring .fill { stroke: #d8c393; }
     .metric:before {
-      background: linear-gradient(90deg, #ffe45c 0 36%, #e1272f 36% 56%, #2878d7 56% 100%);
+      background: linear-gradient(90deg, #d8c393 0 44%, #6fb18b 44% 72%, #6f9fb1 72% 100%);
     }
     .workspace-tab.active {
-      background: linear-gradient(135deg, #ffe45c 0 65%, #e1272f 65% 100%);
+      background: linear-gradient(135deg, #e8dcc4, #c3ad7b);
       color: #11100b;
     }
     .album-spread {
-      border: 1px solid rgba(130,82,22,.34);
+      border: 1px solid rgba(92,72,42,.22);
       background:
-        linear-gradient(90deg, rgba(225,39,47,.75) 0 4px, transparent 4px calc(100% - 4px), rgba(255,228,92,.9) calc(100% - 4px) 100%),
+        linear-gradient(90deg, rgba(78,95,86,.42) 0 3px, transparent 3px calc(100% - 3px), rgba(216,195,147,.58) calc(100% - 3px) 100%),
         linear-gradient(90deg, transparent calc(50% - 1px), rgba(68,52,28,.28) calc(50% - 1px), rgba(68,52,28,.28) calc(50% + 1px), transparent calc(50% + 1px)),
         repeating-linear-gradient(0deg, rgba(0,0,0,.024), rgba(0,0,0,.024) 1px, transparent 1px, transparent 12px),
-        #f5ead1;
+        #f3ead7;
     }
     .album-spread-head {
-      border-bottom: 2px solid rgba(225,39,47,.16);
+      border-bottom: 1px solid rgba(57,46,30,.18);
     }
     .album-spread-kicker {
-      color: #b11c23;
+      color: #5f7468;
     }
     .album-spread-title {
       color: #21170c;
     }
     .album-pages .team {
       background:
-        linear-gradient(180deg, rgba(255,228,92,.08), transparent 24%),
+        linear-gradient(180deg, rgba(216,195,147,.1), transparent 24%),
         rgba(255,252,241,.88);
     }
     .album-pages .team-head {
-      border-bottom: 1px solid rgba(225,39,47,.12);
+      border-bottom: 1px solid rgba(57,46,30,.12);
     }
     .album-pages .sticker {
       border-style: dashed;
@@ -742,33 +744,33 @@
     .album-pages .sticker.have {
       border-style: solid;
       background:
-        linear-gradient(135deg, rgba(255,228,92,.28), transparent 36%),
-        linear-gradient(145deg, #fff9df, #d8f4ce);
+        linear-gradient(135deg, rgba(216,195,147,.22), transparent 36%),
+        linear-gradient(145deg, #fff9ed, #dceee1);
     }
     .album-pages .sticker.missing {
       border-style: dashed;
       background:
-        linear-gradient(135deg, rgba(225,39,47,.18) 0 18%, transparent 18% 100%),
-        repeating-linear-gradient(135deg, rgba(225,94,87,.18), rgba(225,94,87,.18) 6px, rgba(255,255,255,.7) 6px, rgba(255,255,255,.7) 12px);
+        linear-gradient(135deg, rgba(177,74,63,.15) 0 18%, transparent 18% 100%),
+        repeating-linear-gradient(135deg, rgba(177,74,63,.13), rgba(177,74,63,.13) 6px, rgba(255,255,255,.72) 6px, rgba(255,255,255,.72) 12px);
     }
     .sticker .dupe {
-      background: linear-gradient(135deg, #ffe45c, #ffb72b);
+      background: linear-gradient(135deg, #e8dcc4, #c3ad7b);
       box-shadow: 0 6px 12px rgba(0,0,0,.22);
     }
     .trade-hero, .missing-hero {
       background:
-        linear-gradient(100deg, rgba(225,39,47,.25) 0 10%, transparent 10% 13%, rgba(255,228,92,.2) 13% 19%, transparent 19%),
-        linear-gradient(135deg, rgba(231,187,85,.18), rgba(103,183,220,.08));
-      border-color: rgba(255,228,92,.3);
+        linear-gradient(100deg, rgba(216,195,147,.14) 0 1px, transparent 1px 100%),
+        linear-gradient(135deg, rgba(216,195,147,.12), rgba(111,159,177,.08));
+      border-color: rgba(225,211,178,.2);
     }
     .mobile-dock {
-      border-color: rgba(255,228,92,.42);
+      border-color: rgba(225,211,178,.28);
       background:
-        linear-gradient(90deg, rgba(225,39,47,.34), transparent 16%),
+        linear-gradient(90deg, rgba(216,195,147,.12), transparent 20%),
         rgba(12,15,13,.92);
     }
     .mobile-dock button.active {
-      background: linear-gradient(135deg, #ffe45c 0 66%, #e1272f 66% 100%);
+      background: linear-gradient(135deg, #e8dcc4, #c3ad7b);
       color: #11100b;
     }
 
