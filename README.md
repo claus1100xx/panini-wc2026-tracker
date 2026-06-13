@@ -16,19 +16,18 @@ Sticker metadata is sourced from Checklist Insider and stored locally in `checkl
 
 ## Cloud Sync
 
-The app is local-first. To sync across phones, tablets, and computers without a personal device token, connect Supabase:
+The app is local-first. For seamless sync across phones, tablets, and computers without logins or per-device tokens, use a Supabase family room link:
 
 1. Create a free Supabase project.
 2. Open Supabase SQL Editor and run `supabase-schema.sql`.
-3. In the app, open **Cloud Sync** and choose **Supabase background sync**.
-4. Enter the Supabase Project URL, public anon key, and a shared family sync code.
-5. Click **Create / Update Cloud** on the first device.
-6. On each other device, enter the same Supabase values and family sync code, then click **Pull**.
-7. Leave **Auto sync** enabled to push future changes automatically.
+3. Add the Supabase Project URL and public anon key to `SUPABASE_PROJECT` in `index.html`, or enter them once in **Cloud Sync** > **Advanced setup**.
+4. On the main device, open **Cloud Sync** and click **Create Family Sync Link**.
+5. Share the generated link with the other devices. Opening that link joins the same family room automatically.
+6. Leave **Auto sync** enabled to push future changes in the background.
 
-The Supabase anon key is public by design. The family sync code is stored only in that browser and is not included in JSON collection backups.
+The Supabase anon key is public by design. The private part is the generated room code in the shared `#room=` link, so only share it with your collectors.
 
-GitHub Gist sync remains available as a fallback from the same **Cloud Sync** dialog.
+GitHub Gist sync remains available as an advanced fallback from the same **Cloud Sync** dialog.
 
 ## Deployment
 

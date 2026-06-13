@@ -1002,6 +1002,23 @@
     .check-row input { width: 18px; height: 18px; accent-color: var(--collector-accent); }
     .sync-note { margin: 10px 0 0; }
     .sync-note a { color: color-mix(in srgb, var(--collector-accent) 72%, white); }
+    .sync-room-link {
+      font-weight: 800;
+      color: color-mix(in srgb, var(--collector-accent) 70%, white);
+    }
+    .sync-advanced {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid color-mix(in srgb, var(--collector-accent) 18%, transparent);
+    }
+    .sync-advanced summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
 
     .toast {
       position: fixed;
@@ -1251,57 +1268,67 @@
       </div>
       <div class="sync-status-card">
         <strong id="syncState">Local only</strong>
-        <span id="syncLast">Connect Supabase to sync automatically without device tokens.</span>
+        <span id="syncLast">Create a family room link to sync without logins.</span>
       </div>
-      <div class="sync-grid">
-        <label class="full">
-          <span class="label">Sync service</span>
-          <select class="select" id="syncProvider">
-            <option value="supabase">Supabase background sync</option>
-            <option value="gist">GitHub Gist fallback</option>
-          </select>
-        </label>
-        <div class="sync-provider-section full" id="supabaseFields">
-          <div class="sync-grid">
-            <label class="full">
-              <span class="label">Supabase project URL</span>
-              <input class="input" id="supabaseUrl" type="url" autocomplete="off" placeholder="https://your-project.supabase.co">
-            </label>
-            <label class="full">
-              <span class="label">Supabase anon key</span>
-              <input class="input" id="supabaseKey" type="password" autocomplete="off" placeholder="Public anon key">
-            </label>
-            <label class="full">
-              <span class="label">Family sync code</span>
-              <input class="input" id="syncCode" type="password" autocomplete="off" placeholder="Choose a shared family code">
-            </label>
-          </div>
-        </div>
-        <div class="sync-provider-section full hidden" id="gistFields">
-          <div class="sync-grid">
-            <label class="full">
-              <span class="label">GitHub token</span>
-              <input class="input" id="syncToken" type="password" autocomplete="off" placeholder="Token with gist access">
-            </label>
-            <label>
-              <span class="label">Gist ID</span>
-              <input class="input" id="syncGistId" type="text" autocomplete="off" placeholder="Create one or paste an existing ID">
-            </label>
-          </div>
-        </div>
-        <label class="check-row">
-          <input id="syncAuto" type="checkbox">
-          <span>Auto sync</span>
-        </label>
-      </div>
-      <div class="sync-note" id="syncNote"></div>
+      <label>
+        <span class="label">Family sync link</span>
+        <input class="input sync-room-link" id="syncRoomLink" type="text" readonly placeholder="Create a family sync link">
+      </label>
       <div class="actions" style="margin-top:12px">
-        <button class="btn primary" id="syncCreateBtn">Create / Update Cloud</button>
-        <button class="btn" id="syncSaveBtn">Save Settings</button>
-        <button class="btn good" id="syncPullBtn">Pull</button>
-        <button class="btn blue" id="syncPushBtn">Push</button>
-        <button class="btn bad" id="syncDisconnectBtn">Disconnect</button>
+        <button class="btn primary" id="syncCreateBtn">Create Family Sync Link</button>
+        <button class="btn blue" id="syncCopyLinkBtn">Copy Link</button>
+        <button class="btn good" id="syncPullBtn">Sync Now</button>
+        <button class="btn bad" id="syncDisconnectBtn">Leave Room</button>
       </div>
+      <details class="sync-advanced" id="syncAdvanced">
+        <summary>Advanced setup</summary>
+        <div class="sync-grid" style="margin-top:10px">
+          <label class="full">
+            <span class="label">Sync service</span>
+            <select class="select" id="syncProvider">
+              <option value="supabase">Supabase background sync</option>
+              <option value="gist">GitHub Gist fallback</option>
+            </select>
+          </label>
+          <div class="sync-provider-section full" id="supabaseFields">
+            <div class="sync-grid">
+              <label class="full">
+                <span class="label">Supabase project URL</span>
+                <input class="input" id="supabaseUrl" type="url" autocomplete="off" placeholder="https://your-project.supabase.co">
+              </label>
+              <label class="full">
+                <span class="label">Supabase anon key</span>
+                <input class="input" id="supabaseKey" type="password" autocomplete="off" placeholder="Public anon key">
+              </label>
+              <label class="full">
+                <span class="label">Room code</span>
+                <input class="input" id="syncCode" type="password" autocomplete="off" placeholder="Generated from the family link">
+              </label>
+            </div>
+          </div>
+          <div class="sync-provider-section full hidden" id="gistFields">
+            <div class="sync-grid">
+              <label class="full">
+                <span class="label">GitHub token</span>
+                <input class="input" id="syncToken" type="password" autocomplete="off" placeholder="Token with gist access">
+              </label>
+              <label>
+                <span class="label">Gist ID</span>
+                <input class="input" id="syncGistId" type="text" autocomplete="off" placeholder="Create one or paste an existing ID">
+              </label>
+            </div>
+          </div>
+          <label class="check-row">
+            <input id="syncAuto" type="checkbox">
+            <span>Auto sync</span>
+          </label>
+        </div>
+        <div class="sync-note" id="syncNote"></div>
+        <div class="actions" style="margin-top:12px">
+          <button class="btn" id="syncSaveBtn">Save Setup</button>
+          <button class="btn blue" id="syncPushBtn">Push Now</button>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -1341,6 +1368,10 @@
     const DEVICE_STORAGE_KEY = "panini-wc2026-device-id-v1";
     const SYNC_FILE = "panini-wc2026-sync.json";
     const GITHUB_API = "https://api.github.com";
+    const SUPABASE_PROJECT = {
+      url: "",
+      anonKey: ""
+    };
     const CHECKLIST = window.CHECKLIST_INSIDER || { source: "Checklist Insider", sourceUrl: "", stickers: {} };
     const STICKER_META = CHECKLIST.stickers || {};
     const SPECIAL_ALIASES = { FWC_SPECIAL: "FWC", FWC_HISTORY: "HIST", CC: "CC" };
@@ -1432,7 +1463,8 @@
       syncBadge: $("syncBadge"), syncModal: $("syncModal"), syncState: $("syncState"), syncLast: $("syncLast"),
       syncProvider: $("syncProvider"), supabaseFields: $("supabaseFields"), gistFields: $("gistFields"),
       supabaseUrl: $("supabaseUrl"), supabaseKey: $("supabaseKey"), syncCode: $("syncCode"),
-      syncToken: $("syncToken"), syncGistId: $("syncGistId"), syncAuto: $("syncAuto"), syncNote: $("syncNote")
+      syncToken: $("syncToken"), syncGistId: $("syncGistId"), syncAuto: $("syncAuto"), syncNote: $("syncNote"),
+      syncRoomLink: $("syncRoomLink"), syncAdvanced: $("syncAdvanced")
     };
 
     function makeUser(seedClaus) {
@@ -1462,30 +1494,88 @@
       return id;
     }
 
+    function roomCodeFromUrl() {
+      const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+      const query = new URLSearchParams(location.search);
+      return sanitizeRoomCode(hash.get("room") || query.get("room") || "");
+    }
+
+    function sanitizeRoomCode(value) {
+      return String(value || "").trim().replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 96);
+    }
+
+    function createRoomCode() {
+      const bytes = new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function roomLink(code = syncConfig.syncCode) {
+      if (!code) return "";
+      const url = new URL(location.href);
+      url.search = "";
+      url.hash = `room=${encodeURIComponent(code)}`;
+      return url.toString();
+    }
+
+    function setRoomInAddressBar() {
+      const link = roomLink();
+      if (link) history.replaceState(null, "", link);
+    }
+
+    function clearRoomFromAddressBar() {
+      const url = new URL(location.href);
+      url.hash = "";
+      history.replaceState(null, "", url.toString());
+    }
+
+    function effectiveSupabaseUrl() {
+      return (syncConfig.supabaseUrl || SUPABASE_PROJECT.url || "").replace(/\/+$/, "");
+    }
+
+    function effectiveSupabaseKey() {
+      return syncConfig.supabaseKey || SUPABASE_PROJECT.anonKey || "";
+    }
+
     function loadSyncConfig() {
       try {
         const parsed = JSON.parse(localStorage.getItem(SYNC_STORAGE_KEY) || "{}");
-        const provider = parsed.provider || ((parsed.token || parsed.gistId) ? "gist" : "supabase");
+        const urlRoom = roomCodeFromUrl();
+        const provider = urlRoom ? "supabase" : parsed.provider || ((parsed.token || parsed.gistId) ? "gist" : "supabase");
         return {
           provider,
-          supabaseUrl: parsed.supabaseUrl || "",
-          supabaseKey: parsed.supabaseKey || "",
-          syncCode: parsed.syncCode || "",
+          supabaseUrl: parsed.supabaseUrl || SUPABASE_PROJECT.url || "",
+          supabaseKey: parsed.supabaseKey || SUPABASE_PROJECT.anonKey || "",
+          syncCode: urlRoom || parsed.syncCode || "",
           token: parsed.token || "",
           gistId: parsed.gistId || "",
           auto: parsed.auto !== false,
           lastPulledAt: parsed.lastPulledAt || "",
           lastPushedAt: parsed.lastPushedAt || "",
-          lastStatus: parsed.lastStatus || ""
+          lastStatus: urlRoom && urlRoom !== parsed.syncCode ? "Joined family room from link." : parsed.lastStatus || ""
         };
       } catch {
-        return { provider: "supabase", supabaseUrl: "", supabaseKey: "", syncCode: "", token: "", gistId: "", auto: true, lastPulledAt: "", lastPushedAt: "", lastStatus: "" };
+        return { provider: "supabase", supabaseUrl: SUPABASE_PROJECT.url || "", supabaseKey: SUPABASE_PROJECT.anonKey || "", syncCode: roomCodeFromUrl(), token: "", gistId: "", auto: true, lastPulledAt: "", lastPushedAt: "", lastStatus: "" };
       }
     }
 
     function saveSyncConfig() {
       localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify(syncConfig));
       renderSyncStatus();
+    }
+
+    function joinRoomFromAddressBar() {
+      const urlRoom = roomCodeFromUrl();
+      if (!urlRoom || urlRoom === syncConfig.syncCode) return false;
+      syncConfig.provider = "supabase";
+      syncConfig.syncCode = urlRoom;
+      syncConfig.auto = syncConfig.auto !== false;
+      syncConfig.lastStatus = "Joined family room from link.";
+      if (els.syncProvider) els.syncProvider.value = "supabase";
+      if (els.syncCode) els.syncCode.value = syncConfig.syncCode;
+      if (els.syncAuto) els.syncAuto.checked = syncConfig.auto;
+      saveSyncConfig();
+      return true;
     }
 
     function applyClausMissingSeed(targetState) {
@@ -1691,9 +1781,13 @@
       els.syncProvider.addEventListener("change", () => { syncConfig.provider = els.syncProvider.value; renderSyncStatus(); });
       $("syncSaveBtn").addEventListener("click", saveSyncSettingsFromForm);
       $("syncCreateBtn").addEventListener("click", createCloudFile);
+      $("syncCopyLinkBtn").addEventListener("click", copyRoomLink);
       $("syncPullBtn").addEventListener("click", () => pullCloud());
       $("syncPushBtn").addEventListener("click", () => pushCloud());
       $("syncDisconnectBtn").addEventListener("click", disconnectCloudSync);
+      window.addEventListener("hashchange", () => {
+        if (joinRoomFromAddressBar()) startAutoCloudPull();
+      });
       $("packBtn").addEventListener("click", openPackModal);
       $("closePack").addEventListener("click", closePackModal);
       $("packModal").addEventListener("click", e => { if (e.target === $("packModal")) closePackModal(); });
@@ -2334,11 +2428,15 @@
 
     async function copyText(text) {
       try {
+        if (!navigator.clipboard?.writeText) throw new Error("Clipboard API unavailable.");
         await navigator.clipboard.writeText(text);
         toast("Copied to clipboard.");
       } catch {
         const ta = document.createElement("textarea");
         ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
         document.body.appendChild(ta);
         ta.select();
         document.execCommand("copy");
@@ -2432,7 +2530,7 @@
 
     function hasCloudConfig() {
       return syncConfig.provider === "supabase"
-        ? Boolean(syncConfig.supabaseUrl && syncConfig.supabaseKey && syncConfig.syncCode)
+        ? Boolean(effectiveSupabaseUrl() && effectiveSupabaseKey() && syncConfig.syncCode)
         : Boolean(syncConfig.token && syncConfig.gistId);
     }
 
@@ -2451,11 +2549,26 @@
 
     function renderSyncStatus() {
       const connected = hasCloudConfig();
-      if (els.syncBadge) els.syncBadge.textContent = connected ? (syncConfig.auto ? "Auto" : syncConfig.provider === "supabase" ? "Live" : "Cloud") : "Local";
+      const hasRoom = Boolean(syncConfig.syncCode);
+      const supabaseReady = Boolean(effectiveSupabaseUrl() && effectiveSupabaseKey());
+      if (els.syncBadge) {
+        els.syncBadge.textContent = connected
+          ? (syncConfig.auto ? "Auto" : syncConfig.provider === "supabase" ? "Live" : "Cloud")
+          : hasRoom ? "Room" : "Local";
+      }
       if (!els.syncState || !els.syncLast) return;
-      els.syncState.textContent = connected ? `${syncProviderName()} ${syncConfig.auto ? "auto sync on" : "sync ready"}` : "Local only";
-      const last = syncConfig.lastStatus || (connected ? `Pulled ${syncStamp(syncConfig.lastPulledAt)} · Pushed ${syncStamp(syncConfig.lastPushedAt)}` : "Connect Supabase to sync automatically without device tokens.");
+      els.syncState.textContent = connected
+        ? `${syncProviderName()} ${syncConfig.auto ? "auto sync on" : "sync ready"}`
+        : hasRoom ? "Family room saved" : "Local only";
+      const last = syncConfig.lastStatus || (
+        connected
+          ? `Pulled ${syncStamp(syncConfig.lastPulledAt)} · Pushed ${syncStamp(syncConfig.lastPushedAt)}`
+          : hasRoom
+            ? (supabaseReady ? "Ready to sync this family room." : "Room link ready. Add Supabase setup once to turn on cloud sync.")
+            : "Create a family room link to sync without logins."
+      );
       els.syncLast.textContent = last;
+      if (els.syncRoomLink) els.syncRoomLink.value = roomLink();
       if (els.syncProvider) {
         els.syncProvider.value = syncConfig.provider || "supabase";
         renderSyncProviderFields();
@@ -2464,8 +2577,8 @@
 
     function openSyncModal() {
       els.syncProvider.value = syncConfig.provider || "supabase";
-      els.supabaseUrl.value = syncConfig.supabaseUrl || "";
-      els.supabaseKey.value = syncConfig.supabaseKey || "";
+      els.supabaseUrl.value = effectiveSupabaseUrl();
+      els.supabaseKey.value = effectiveSupabaseKey();
       els.syncCode.value = syncConfig.syncCode || "";
       els.syncToken.value = syncConfig.token || "";
       els.syncGistId.value = syncConfig.gistId || "";
@@ -2485,7 +2598,7 @@
       syncConfig.provider = els.syncProvider.value || "supabase";
       syncConfig.supabaseUrl = els.supabaseUrl.value.trim().replace(/\/+$/, "");
       syncConfig.supabaseKey = els.supabaseKey.value.trim();
-      syncConfig.syncCode = els.syncCode.value.trim();
+      syncConfig.syncCode = sanitizeRoomCode(els.syncCode.value);
       syncConfig.token = els.syncToken.value.trim();
       syncConfig.gistId = els.syncGistId.value.trim();
       syncConfig.auto = els.syncAuto.checked;
@@ -2496,7 +2609,9 @@
       syncConfig.lastStatus = hasCloudConfig()
         ? `${syncProviderName()} settings saved.`
         : syncConfig.provider === "supabase"
-          ? "Settings saved. Add Supabase URL, anon key, and family sync code to connect."
+          ? syncConfig.syncCode
+            ? "Settings saved. Add Supabase setup to turn on cloud sync."
+            : "Settings saved. Create a family link to connect devices."
           : "Settings saved. Add token and Gist ID to connect.";
       saveSyncConfig();
       toast(syncConfig.lastStatus);
@@ -2507,16 +2622,20 @@
       const provider = els.syncProvider.value || syncConfig.provider || "supabase";
       els.supabaseFields.classList.toggle("hidden", provider !== "supabase");
       els.gistFields.classList.toggle("hidden", provider !== "gist");
+      const createBtn = $("syncCreateBtn");
+      const copyBtn = $("syncCopyLinkBtn");
+      if (createBtn) createBtn.textContent = provider === "gist" ? "Create Gist Sync File" : "Create Family Sync Link";
+      if (copyBtn) copyBtn.classList.toggle("hidden", provider === "gist");
       if (els.syncNote) {
         els.syncNote.innerHTML = provider === "supabase"
-          ? `Supabase uses your public anon key plus a family sync code. No personal device token is needed. Run <strong>supabase-schema.sql</strong> in Supabase first.`
+          ? `Create and share one family link for every device. Supabase setup can be embedded in <strong>SUPABASE_PROJECT</strong> or saved here after running <strong>supabase-schema.sql</strong>.`
           : `Use a GitHub token limited to Gist access. The token is stored only in this browser, separate from collection backups. <a href="https://github.com/settings/tokens/new?scopes=gist&description=Panini%20WC2026%20Sync" target="_blank" rel="noreferrer">Create token</a>.`;
       }
     }
 
     function setSyncBusy(isBusy, message = "") {
       syncBusy = isBusy;
-      ["syncCreateBtn", "syncSaveBtn", "syncPullBtn", "syncPushBtn", "syncDisconnectBtn"].forEach(id => {
+      ["syncCreateBtn", "syncCopyLinkBtn", "syncSaveBtn", "syncPullBtn", "syncPushBtn", "syncDisconnectBtn"].forEach(id => {
         const btn = $(id);
         if (btn) btn.disabled = isBusy;
       });
@@ -2553,23 +2672,26 @@
     }
 
     function missingCloudConfigMessage() {
-      return syncConfig.provider === "supabase"
-        ? "Add Supabase URL, anon key, and family sync code first."
-        : "Add a GitHub token and Gist ID first.";
+      if (syncConfig.provider !== "supabase") return "Add a GitHub token and Gist ID first.";
+      if (!syncConfig.syncCode) return "Create a family sync link first.";
+      return "Add Supabase setup once in Advanced setup or SUPABASE_PROJECT.";
     }
 
     function supabaseHeaders(extra = {}) {
+      const key = effectiveSupabaseKey();
       return {
-        apikey: syncConfig.supabaseKey,
-        Authorization: `Bearer ${syncConfig.supabaseKey}`,
+        apikey: key,
+        Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
         ...extra
       };
     }
 
     async function supabaseRpc(functionName, payload) {
-      if (!syncConfig.supabaseUrl || !syncConfig.supabaseKey) throw new Error("Add Supabase URL and anon key first.");
-      const res = await fetch(`${syncConfig.supabaseUrl}/rest/v1/rpc/${functionName}`, {
+      const url = effectiveSupabaseUrl();
+      const key = effectiveSupabaseKey();
+      if (!url || !key) throw new Error("Add Supabase URL and anon key first.");
+      const res = await fetch(`${url}/rest/v1/rpc/${functionName}`, {
         method: "POST",
         headers: supabaseHeaders(),
         body: JSON.stringify(payload)
@@ -2599,11 +2721,25 @@
     async function createCloudFile() {
       readSyncSettingsFromForm();
       if (syncConfig.provider === "supabase") {
-        if (!hasCloudConfig()) return toast(missingCloudConfigMessage());
-        await pushCloud({ silent:true });
-        syncConfig.lastStatus = "Supabase cloud record is ready.";
+        if (!syncConfig.syncCode) syncConfig.syncCode = createRoomCode();
+        syncConfig.auto = true;
+        syncConfig.provider = "supabase";
+        if (els.syncCode) els.syncCode.value = syncConfig.syncCode;
+        if (els.syncAuto) els.syncAuto.checked = true;
+        setRoomInAddressBar();
+        syncConfig.lastStatus = hasCloudConfig()
+          ? "Family room created. Syncing now..."
+          : "Family link created. Add Supabase setup once to enable cloud sync.";
         saveSyncConfig();
-        toast(syncConfig.lastStatus);
+        if (hasCloudConfig()) {
+          await pushCloud({ silent:true });
+          syncConfig.lastStatus = "Family sync link is live.";
+          saveSyncConfig();
+          toast("Family sync link is live.");
+        } else {
+          toast("Family sync link created.");
+        }
+        if (els.syncRoomLink?.value) copyText(els.syncRoomLink.value);
         return;
       }
       if (!syncConfig.token) return toast("Add a GitHub token first.");
@@ -2633,11 +2769,32 @@
       }
     }
 
+    async function copyRoomLink() {
+      readSyncSettingsFromForm();
+      syncConfig.provider = "supabase";
+      if (els.syncProvider) els.syncProvider.value = "supabase";
+      if (!syncConfig.syncCode) {
+        syncConfig.syncCode = createRoomCode();
+        syncConfig.auto = true;
+        syncConfig.lastStatus = hasCloudConfig()
+          ? "Family link ready. Use Sync Now to update the room."
+          : "Family link created. Add Supabase setup once to enable cloud sync.";
+        if (els.syncCode) els.syncCode.value = syncConfig.syncCode;
+        if (els.syncAuto) els.syncAuto.checked = true;
+      }
+      saveSyncConfig();
+      setRoomInAddressBar();
+      const link = roomLink();
+      if (!link) return toast("Create a family sync link first.");
+      if (els.syncRoomLink) els.syncRoomLink.value = link;
+      await copyText(link);
+    }
+
     async function readCloudPayload() {
       if (syncConfig.provider === "supabase") {
-        if (!syncConfig.syncCode) throw new Error("Add a family sync code first.");
+        if (!syncConfig.syncCode) throw new Error("Create a family sync link first.");
         const payload = await supabaseRpc("panini_pull_collection", { p_sync_code: syncConfig.syncCode });
-        if (!payload) throw new Error("No Supabase cloud record found. Use Create / Update Cloud on your main device first.");
+        if (!payload) throw new Error("No Supabase cloud record found. Use Create Family Sync Link on your main device first.");
         return payload;
       }
       if (!syncConfig.gistId) throw new Error("Add a Gist ID first.");
@@ -2740,17 +2897,21 @@
     }
 
     function disconnectCloudSync() {
-      syncConfig = { provider: "supabase", supabaseUrl: "", supabaseKey: "", syncCode: "", token: "", gistId: "", auto: true, lastPulledAt: "", lastPushedAt: "", lastStatus: "Cloud sync disconnected on this device." };
-      localStorage.removeItem(SYNC_STORAGE_KEY);
+      const supabaseUrl = effectiveSupabaseUrl();
+      const supabaseKey = effectiveSupabaseKey();
+      syncConfig = { provider: "supabase", supabaseUrl, supabaseKey, syncCode: "", token: "", gistId: "", auto: true, lastPulledAt: "", lastPushedAt: "", lastStatus: "Left the family room on this device." };
+      saveSyncConfig();
+      clearRoomFromAddressBar();
       els.syncProvider.value = "supabase";
-      els.supabaseUrl.value = "";
-      els.supabaseKey.value = "";
+      els.supabaseUrl.value = supabaseUrl;
+      els.supabaseKey.value = supabaseKey;
       els.syncCode.value = "";
       els.syncToken.value = "";
       els.syncGistId.value = "";
+      if (els.syncRoomLink) els.syncRoomLink.value = "";
       els.syncAuto.checked = true;
       renderSyncStatus();
-      toast("Cloud sync disconnected on this device.");
+      toast("Left the family room on this device.");
     }
 
     function startAutoCloudPull() {
@@ -2813,6 +2974,7 @@
     initControls();
     render();
     if (seedMigrationApplied) saveState({ touchUser:false });
+    if (roomCodeFromUrl()) saveSyncConfig();
     startAutoCloudPull();
   </script>
 </body>
