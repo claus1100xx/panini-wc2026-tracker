@@ -643,6 +643,135 @@
       scroll-margin-top: 140px;
     }
 
+    .brand-strip {
+      width: max-content;
+      max-width: 100%;
+      margin-bottom: 12px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #ffe45c 0 62%, #e1272f 62% 100%);
+      color: #12100a;
+      font-size: .72rem;
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      box-shadow: 0 10px 28px rgba(225,39,47,.2);
+    }
+
+    .topbar {
+      border-color: rgba(255,228,92,.42);
+      background:
+        linear-gradient(100deg, rgba(225,39,47,.86) 0 11%, transparent 11% 13%, rgba(255,228,92,.88) 13% 17%, transparent 17% 100%),
+        radial-gradient(circle at 70% 18%, rgba(255,228,92,.18), transparent 32%),
+        linear-gradient(135deg, rgba(15,18,15,.9), rgba(36,44,35,.86) 56%, rgba(11,14,12,.94));
+    }
+    .topbar:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 2px, transparent 2px 12px),
+        linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+      mix-blend-mode: screen;
+      opacity: .65;
+    }
+    .topbar h1 {
+      font-family: Georgia, Times New Roman, serif;
+      text-transform: none;
+      color: #fff8d6;
+    }
+    .topbar .tagline {
+      max-width: 690px;
+      color: rgba(255,248,214,.82);
+    }
+    .user-panel {
+      border-top: 5px solid #ffe45c;
+      box-shadow: 0 28px 80px rgba(0,0,0,.34), inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, #ffe45c, #f7be26 58%, #e1272f 58% 100%);
+      color: #12100a;
+      border-color: rgba(255,228,92,.9);
+      box-shadow: 0 12px 28px rgba(255,228,92,.16);
+    }
+    .score {
+      border-color: rgba(255,228,92,.24);
+      background:
+        linear-gradient(90deg, rgba(225,39,47,.16), transparent 24%),
+        rgba(28,35,32,.92);
+    }
+    .ring .fill { stroke: #ffe45c; }
+    .metric:before {
+      background: linear-gradient(90deg, #ffe45c 0 36%, #e1272f 36% 56%, #2878d7 56% 100%);
+    }
+    .workspace-tab.active {
+      background: linear-gradient(135deg, #ffe45c 0 65%, #e1272f 65% 100%);
+      color: #11100b;
+    }
+    .album-spread {
+      border: 1px solid rgba(130,82,22,.34);
+      background:
+        linear-gradient(90deg, rgba(225,39,47,.75) 0 4px, transparent 4px calc(100% - 4px), rgba(255,228,92,.9) calc(100% - 4px) 100%),
+        linear-gradient(90deg, transparent calc(50% - 1px), rgba(68,52,28,.28) calc(50% - 1px), rgba(68,52,28,.28) calc(50% + 1px), transparent calc(50% + 1px)),
+        repeating-linear-gradient(0deg, rgba(0,0,0,.024), rgba(0,0,0,.024) 1px, transparent 1px, transparent 12px),
+        #f5ead1;
+    }
+    .album-spread-head {
+      border-bottom: 2px solid rgba(225,39,47,.16);
+    }
+    .album-spread-kicker {
+      color: #b11c23;
+    }
+    .album-spread-title {
+      color: #21170c;
+    }
+    .album-pages .team {
+      background:
+        linear-gradient(180deg, rgba(255,228,92,.08), transparent 24%),
+        rgba(255,252,241,.88);
+    }
+    .album-pages .team-head {
+      border-bottom: 1px solid rgba(225,39,47,.12);
+    }
+    .album-pages .sticker {
+      border-style: dashed;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.88), rgba(235,224,196,.72));
+    }
+    .album-pages .sticker.have {
+      border-style: solid;
+      background:
+        linear-gradient(135deg, rgba(255,228,92,.28), transparent 36%),
+        linear-gradient(145deg, #fff9df, #d8f4ce);
+    }
+    .album-pages .sticker.missing {
+      border-style: dashed;
+      background:
+        linear-gradient(135deg, rgba(225,39,47,.18) 0 18%, transparent 18% 100%),
+        repeating-linear-gradient(135deg, rgba(225,94,87,.18), rgba(225,94,87,.18) 6px, rgba(255,255,255,.7) 6px, rgba(255,255,255,.7) 12px);
+    }
+    .sticker .dupe {
+      background: linear-gradient(135deg, #ffe45c, #ffb72b);
+      box-shadow: 0 6px 12px rgba(0,0,0,.22);
+    }
+    .trade-hero, .missing-hero {
+      background:
+        linear-gradient(100deg, rgba(225,39,47,.25) 0 10%, transparent 10% 13%, rgba(255,228,92,.2) 13% 19%, transparent 19%),
+        linear-gradient(135deg, rgba(231,187,85,.18), rgba(103,183,220,.08));
+      border-color: rgba(255,228,92,.3);
+    }
+    .mobile-dock {
+      border-color: rgba(255,228,92,.42);
+      background:
+        linear-gradient(90deg, rgba(225,39,47,.34), transparent 16%),
+        rgba(12,15,13,.92);
+    }
+    .mobile-dock button.active {
+      background: linear-gradient(135deg, #ffe45c 0 66%, #e1272f 66% 100%);
+      color: #11100b;
+    }
+
     .modal {
       position: fixed;
       inset: 0;
@@ -740,6 +869,7 @@
   <main class="app">
     <header class="topbar">
       <section>
+        <div class="brand-strip">Panini-inspired collector tracker</div>
         <h1>World Cup 2026 Sticker Room</h1>
         <div class="tagline">A shared Panini command center for tracking albums, duplicates, missing stickers, pack luck, and trade opportunities across Claus, Holger, Karl-Eric, and Sam.</div>
       </section>
