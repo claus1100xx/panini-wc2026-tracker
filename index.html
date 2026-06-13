@@ -1631,19 +1631,29 @@
       }).join("");
     }
 
+    function compactNeedCode(team) {
+      if (team.code === "FWC_SPECIAL" || team.code === "FWC_HISTORY") return "FWC";
+      return team.albumCode || team.code;
+    }
+
+    function compactNeedNumber(team, number) {
+      return String(number);
+    }
+
     function needText(user = currentUser) {
       const byGroup = new Map();
       missingRows(user).forEach(row => {
         if (!byGroup.has(row.group)) byGroup.set(row.group, new Map());
         const teamMap = byGroup.get(row.group);
-        if (!teamMap.has(row.team.code)) teamMap.set(row.team.code, []);
-        teamMap.get(row.team.code).push(`${row.sourceCode} (${row.title})`);
+        const compactCode = compactNeedCode(row.team);
+        if (!teamMap.has(compactCode)) teamMap.set(compactCode, []);
+        teamMap.get(compactCode).push(compactNeedNumber(row.team, row.number));
       });
       if (!byGroup.size) return `${user} has no missing stickers recorded.`;
       const lines = [`${user} needs:`];
       [...byGroup.entries()].sort(([a], [b]) => groupRank(a) - groupRank(b)).forEach(([group, teamMap]) => {
         lines.push(`\n${groupLabel(group)}`);
-        [...teamMap.entries()].forEach(([code, nums]) => lines.push(`${code}: ${nums.join(", ")}`));
+        [...teamMap.entries()].forEach(([code, nums]) => lines.push(`${code} ${nums.join(", ")}`));
       });
       return lines.join("\n");
     }
