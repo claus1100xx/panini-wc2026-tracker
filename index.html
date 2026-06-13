@@ -309,6 +309,16 @@
     }
     .mini-row strong { color: var(--ink); }
     .empty { color: var(--muted); padding: 10px; border: 1px dashed rgba(255,255,255,.12); border-radius: var(--radius); }
+    .mini-group {
+      margin-top: 8px;
+      padding: 7px 3px 3px;
+      color: var(--gold);
+      font-size: .68rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
 
     .workspace-strip {
       display: grid;
@@ -497,6 +507,14 @@
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 8px;
+    }
+    .missing-group-title {
+      margin: 4px 0 0;
+      color: var(--gold);
+      font-size: .78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .16em;
     }
 
     .mobile-dock {
@@ -1116,6 +1134,7 @@
 
     const totalStickers = TEAMS.reduce((sum, team) => sum + team.total, 0);
     const stickerPool = TEAMS.flatMap(team => Array.from({ length: team.total }, (_, i) => ({ code: team.code, number: i + 1 })));
+    const GROUP_ORDER = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "Special"];
     let state = loadState();
     let currentUser = state.currentUser || "Claus";
     let mode = "mark";
@@ -1240,6 +1259,15 @@
         if (!teamMissing && !teamUnknown) completeTeams++;
       });
       return { have, missing, unknown, dupes, completeTeams, pct: Math.round(have / totalStickers * 100), trades: tradeMatches(user).length };
+    }
+
+    function groupRank(group) {
+      const index = GROUP_ORDER.indexOf(group);
+      return index === -1 ? GROUP_ORDER.length : index;
+    }
+
+    function groupLabel(group) {
+      return group === "Special" ? "Specials" : `Group ${group}`;
     }
 
     function tradeMatches(user = currentUser) {
@@ -1427,27 +1455,32 @@
       els.grid.className = "missing-board";
       const allowed = new Set(teams.map(team => team.code));
       const rows = missingRows(currentUser).filter(row => allowed.has(row.team.code));
-      const byTeam = new Map();
+      const byGroup = new Map();
       rows.forEach(row => {
-        if (!byTeam.has(row.team.code)) byTeam.set(row.team.code, []);
-        byTeam.get(row.team.code).push(row);
+        if (!byGroup.has(row.team.group)) byGroup.set(row.team.group, new Map());
+        const groupTeams = byGroup.get(row.team.group);
+        if (!groupTeams.has(row.team.code)) groupTeams.set(row.team.code, []);
+        groupTeams.get(row.team.code).push(row);
       });
       els.grid.innerHTML = `<section class="missing-hero">
         <div>
           <h2>Missing Desk</h2>
-          <p>${rows.length} stickers are still on ${currentUser}'s chase list across ${byTeam.size} teams.</p>
+          <p>${rows.length} stickers are still on ${currentUser}'s chase list across ${new Set(rows.map(row => row.team.code)).size} teams, ordered by album group.</p>
         </div>
         <button class="btn primary" data-copy-missing>Copy Need List</button>
-      </section>` + ([...byTeam.values()].map(teamRows => {
-        const team = teamRows[0].team;
-        return `<section class="missing-team">
-          <div class="missing-team-head">
-            <h3>${escapeHtml(team.name)}</h3>
-            <span class="pill miss">${teamRows.length}</span>
-          </div>
-          <div class="chip-row">${teamRows.map(row => `<button class="missing-chip" data-sticker data-code="${escapeHtml(row.team.code)}" data-number="${row.number}" title="${escapeHtml(row.title)}">${escapeHtml(row.sourceCode)} · ${escapeHtml(row.title)}</button>`).join("")}</div>
-        </section>`;
-      }).join("") || `<div class="empty">No missing stickers in this view.</div>`);
+      </section>` + ([...byGroup.entries()]
+        .sort(([a], [b]) => groupRank(a) - groupRank(b))
+        .map(([group, groupTeams]) => `<div class="missing-group-title">${escapeHtml(groupLabel(group))}</div>${[...groupTeams.values()].map(teamRows => {
+          const team = teamRows[0].team;
+          return `<section class="missing-team">
+            <div class="missing-team-head">
+              <h3>${escapeHtml(team.name)}</h3>
+              <span class="pill miss">${teamRows.length}</span>
+            </div>
+            <div class="chip-row">${teamRows.map(row => `<button class="missing-chip" data-sticker data-code="${escapeHtml(row.team.code)}" data-number="${row.number}" title="${escapeHtml(row.title)}">${escapeHtml(row.sourceCode)} · ${escapeHtml(row.title)}</button>`).join("")}</div>
+          </section>`;
+        }).join("")}`)
+        .join("") || `<div class="empty">No missing stickers in this view.</div>`);
       els.grid.querySelector("[data-copy-missing]")?.addEventListener("click", () => copyText(needText()));
       els.grid.querySelectorAll("[data-sticker]").forEach(btn => btn.addEventListener("click", () => handleStickerClick(btn.dataset.code, Number(btn.dataset.number))));
     }
@@ -1573,7 +1606,7 @@
 
     function renderSidebars() {
       const needs = missingRows(currentUser);
-      els.needList.innerHTML = needs.slice(0, 80).map(row => `<div class="mini-row"><span><strong>${escapeHtml(row.sourceCode)}</strong></span><span>${escapeHtml(row.title)}</span></div>`).join("") || `<div class="empty">No missing stickers recorded.</div>`;
+      els.needList.innerHTML = groupedNeedHtml(needs) || `<div class="empty">No missing stickers recorded.</div>`;
       const trades = tradeMatches();
       els.tradeList.innerHTML = trades.slice(0, 80).map(m => `<div class="mini-row"><span><strong>${m.direction === "give" ? "Give" : "Get"}</strong> ${escapeHtml(sourceStickerCode(m.team, m.number) || m.team.code + m.number)}</span><span>${escapeHtml(m.other)} · ${escapeHtml(stickerTitle(m.team, m.number))}</span></div>`).join("") || `<div class="empty">No trade matches yet. Add duplicates and missing lists for more users.</div>`;
     }
@@ -1582,20 +1615,37 @@
       const rows = [];
       TEAMS.forEach(team => {
         for (let i = 1; i <= team.total; i++) if (sticker(team.code, i, user).status === "missing") {
-          rows.push({ team, number:i, label:label(team, i), sourceCode:sourceStickerCode(team, i) || `${team.code}${i}`, title:stickerTitle(team, i) });
+          rows.push({ team, group:team.group, groupOrder:groupRank(team.group), teamOrder:TEAMS.indexOf(team), number:i, label:label(team, i), sourceCode:sourceStickerCode(team, i) || `${team.code}${i}`, title:stickerTitle(team, i) });
         }
       });
-      return rows;
+      return rows.sort((a, b) => a.groupOrder - b.groupOrder || a.teamOrder - b.teamOrder || a.number - b.number);
+    }
+
+    function groupedNeedHtml(rows) {
+      if (!rows.length) return "";
+      let currentGroup = null;
+      return rows.map(row => {
+        const header = row.group !== currentGroup ? `<div class="mini-group">${escapeHtml(groupLabel(row.group))}</div>` : "";
+        currentGroup = row.group;
+        return `${header}<div class="mini-row"><span><strong>${escapeHtml(row.sourceCode)}</strong></span><span>${escapeHtml(row.title)}</span></div>`;
+      }).join("");
     }
 
     function needText(user = currentUser) {
-      const byTeam = new Map();
+      const byGroup = new Map();
       missingRows(user).forEach(row => {
-        if (!byTeam.has(row.team.code)) byTeam.set(row.team.code, []);
-        byTeam.get(row.team.code).push(`${row.sourceCode} (${row.title})`);
+        if (!byGroup.has(row.group)) byGroup.set(row.group, new Map());
+        const teamMap = byGroup.get(row.group);
+        if (!teamMap.has(row.team.code)) teamMap.set(row.team.code, []);
+        teamMap.get(row.team.code).push(`${row.sourceCode} (${row.title})`);
       });
-      if (!byTeam.size) return `${user} has no missing stickers recorded.`;
-      return [`${user} needs:`].concat([...byTeam.entries()].map(([code, nums]) => `${code}: ${nums.join(", ")}`)).join("\n");
+      if (!byGroup.size) return `${user} has no missing stickers recorded.`;
+      const lines = [`${user} needs:`];
+      [...byGroup.entries()].sort(([a], [b]) => groupRank(a) - groupRank(b)).forEach(([group, teamMap]) => {
+        lines.push(`\n${groupLabel(group)}`);
+        [...teamMap.entries()].forEach(([code, nums]) => lines.push(`${code}: ${nums.join(", ")}`));
+      });
+      return lines.join("\n");
     }
 
     function tradeText() {
