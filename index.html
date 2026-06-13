@@ -71,6 +71,37 @@
       box-shadow: var(--shadow);
     }
 
+    .collector-identity {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent, var(--gold)) 16%, transparent), rgba(255,255,255,.035));
+      border: 1px solid color-mix(in srgb, var(--collector-accent, var(--gold)) 36%, transparent);
+      border-radius: var(--radius);
+    }
+    .collector-avatar {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--collector-accent, var(--gold)), var(--collector-accent-2, #6f9fb1));
+      color: #0c0f0d;
+      font-weight: 1000;
+      box-shadow: 0 12px 24px color-mix(in srgb, var(--collector-accent, var(--gold)) 24%, transparent);
+    }
+    .collector-name {
+      font-weight: 1000;
+      color: var(--ink);
+    }
+    .collector-note {
+      color: var(--muted);
+      font-size: .78rem;
+      margin-top: 2px;
+    }
+
     .label { display: block; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 6px; }
     .select, .input, .textarea {
       width: 100%;
@@ -155,6 +186,58 @@
     .metric strong { display: block; font-size: clamp(1.4rem, 2.3vw, 2.1rem); line-height: 1; }
     .metric span { color: var(--muted); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; }
     .metric small { color: var(--muted); }
+
+    .progress-wall {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+      gap: 8px;
+      margin: 0 0 14px;
+    }
+    .group-tile {
+      min-height: 84px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--collector-accent, var(--gold)) calc(var(--heat, 0) * .28%), transparent), transparent),
+        rgba(28,35,32,.86);
+      color: var(--ink);
+      padding: 10px;
+      text-align: left;
+      display: grid;
+      align-content: space-between;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .group-tile:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--collector-accent, var(--gold)) 48%, rgba(255,255,255,.08));
+    }
+    .group-tile:before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--collector-accent, var(--gold)), var(--collector-accent-2, #6f9fb1));
+      transform: scaleX(calc(var(--heat, 0) / 100));
+      transform-origin: left;
+    }
+    .group-tile strong {
+      display: block;
+      font-size: 1.1rem;
+    }
+    .group-tile span {
+      color: var(--muted);
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .group-tile small {
+      color: color-mix(in srgb, var(--collector-accent, var(--gold)) 58%, var(--muted));
+      font-weight: 800;
+    }
 
     .toolbar {
       display: grid;
@@ -898,11 +981,14 @@
           <span class="label">Collector</span>
           <select class="select" id="userSelect"></select>
         </label>
+        <div class="collector-identity" id="collectorIdentity"></div>
         <div class="actions">
           <button class="btn primary" id="exportBtn" title="Export the current tracker to Excel">Export Excel</button>
+          <button class="btn good" id="importMissingBtn" title="Import an Excel or CSV missing list for the selected collector">Import Missing</button>
           <button class="btn blue" id="backupBtn" title="Download a JSON backup">Backup</button>
           <button class="btn" id="restoreBtn" title="Restore from a JSON backup">Restore</button>
           <input id="restoreInput" type="file" accept="application/json" class="hidden">
+          <input id="importMissingInput" type="file" accept=".xlsx,.xls,.csv,.tsv,text/csv,text/tab-separated-values" class="hidden">
         </div>
       </section>
     </header>
@@ -931,6 +1017,8 @@
         <div class="metric"><span>Trade Hits</span><strong id="tradeMetric">0</strong><small>possible swaps</small></div>
       </section>
     </section>
+
+    <section class="progress-wall" id="progressWall" aria-label="World Cup group progress"></section>
 
     <section class="workspace-strip" aria-label="Workspace">
       <button class="workspace-tab active" data-workspace="album">Album Pages</button>
@@ -1001,7 +1089,7 @@
           <h3>Need List</h3>
           <div class="actions" style="margin-bottom:8px">
             <button class="btn" id="copyNeed">Copy</button>
-            <button class="btn" id="copyTrade">Copy Trade Post</button>
+            <button class="btn" id="copyTrade">Copy Share</button>
           </div>
           <div id="needList" class="mini-list"></div>
         </section>
@@ -1063,6 +1151,12 @@
   <script src="checklist-insider-data.js"></script>
   <script>
     const USERS = ["Claus", "Holger", "Karl-Eric", "Sam"];
+    const COLLECTORS = {
+      Claus: { initials: "CL", accent: "#d8c393", accent2: "#7fa48f", note: "Workbook seed loaded" },
+      Holger: { initials: "HO", accent: "#8fb6c9", accent2: "#d8c393", note: "Ready for import" },
+      "Karl-Eric": { initials: "KE", accent: "#b89a7b", accent2: "#7f9c8b", note: "Ready for import" },
+      Sam: { initials: "SA", accent: "#9f94bd", accent2: "#d8c393", note: "Ready for import" }
+    };
     const STORAGE_KEY = "panini-wc2026-collection-hub-v1";
     const CHECKLIST = window.CHECKLIST_INSIDER || { source: "Checklist Insider", sourceUrl: "", stickers: {} };
     const STICKER_META = CHECKLIST.stickers || {};
@@ -1146,7 +1240,8 @@
     const els = {
       userSelect: $("userSelect"), groupFilter: $("groupFilter"), viewFilter: $("viewFilter"), sortFilter: $("sortFilter"),
       searchInput: $("searchInput"), grid: $("collectionGrid"), needList: $("needList"), tradeList: $("tradeList"),
-      teamModal: $("teamModal"), modalTitle: $("modalTitle"), modalSub: $("modalSub"), modalGrid: $("modalGrid")
+      teamModal: $("teamModal"), modalTitle: $("modalTitle"), modalSub: $("modalSub"), modalGrid: $("modalGrid"),
+      collectorIdentity: $("collectorIdentity"), progressWall: $("progressWall"), importMissingInput: $("importMissingInput")
     };
 
     function makeUser(seedClaus) {
@@ -1317,6 +1412,8 @@
       $("copyNeed").addEventListener("click", () => copyText(needText()));
       $("copyTrade").addEventListener("click", () => copyText(tradeText()));
       $("exportBtn").addEventListener("click", exportExcel);
+      $("importMissingBtn").addEventListener("click", () => els.importMissingInput.click());
+      els.importMissingInput.addEventListener("change", importMissingFile);
       $("backupBtn").addEventListener("click", backupJson);
       $("restoreBtn").addEventListener("click", () => $("restoreInput").click());
       $("restoreInput").addEventListener("change", restoreJson);
@@ -1336,6 +1433,7 @@
 
     function render() {
       renderStats();
+      renderProgressWall();
       tradeHitKeys = mode === "trade" || workspace === "trades"
         ? new Set(tradeMatches().map(match => stickerKey(match.team.code, match.number)))
         : new Set();
@@ -1350,6 +1448,10 @@
 
     function renderStats() {
       const s = stats();
+      const profile = COLLECTORS[currentUser] || COLLECTORS.Claus;
+      document.documentElement.style.setProperty("--collector-accent", profile.accent);
+      document.documentElement.style.setProperty("--collector-accent-2", profile.accent2);
+      els.collectorIdentity.innerHTML = `<div class="collector-avatar">${escapeHtml(profile.initials)}</div><div><div class="collector-name">${escapeHtml(currentUser)}</div><div class="collector-note">${escapeHtml(profile.note)} · ${s.pct}% complete</div></div>`;
       $("collectorHeadline").textContent = `${currentUser}'s album`;
       $("collectorSubline").textContent = currentUser === "Claus"
         ? "Seeded from Panini_World_Cup_Missing_Stickers.xlsx. Sticker names sourced from Checklist Insider."
@@ -1361,6 +1463,33 @@
       $("dupeMetric").textContent = s.dupes;
       $("tradeMetric").textContent = s.trades;
       $("progressRing").style.strokeDashoffset = 351.86 * (1 - s.pct / 100);
+    }
+
+    function renderProgressWall() {
+      const groups = GROUP_ORDER.map(group => groupProgress(group)).filter(Boolean);
+      els.progressWall.innerHTML = groups.map(group => `<button class="group-tile" data-group-jump="${escapeHtml(group.group)}" style="--heat:${group.pct}">
+        <div><span>${escapeHtml(groupLabel(group.group))}</span><strong>${group.pct}%</strong></div>
+        <small>${group.missing} missing${group.closeTeams ? ` · ${group.closeTeams} close` : ""}</small>
+      </button>`).join("");
+      els.progressWall.querySelectorAll("[data-group-jump]").forEach(btn => btn.addEventListener("click", () => {
+        els.groupFilter.value = btn.dataset.groupJump;
+        setWorkspace("album");
+      }));
+    }
+
+    function groupProgress(group) {
+      const teams = TEAMS.filter(team => team.group === group);
+      if (!teams.length) return null;
+      let have = 0, missing = 0, unknown = 0, total = 0, closeTeams = 0;
+      teams.forEach(team => {
+        const summary = teamSummary(team);
+        have += summary.have;
+        missing += summary.missing;
+        unknown += summary.unknown;
+        total += team.total;
+        if (summary.missing > 0 && summary.missing <= 3 && summary.unknown === 0) closeTeams++;
+      });
+      return { group, have, missing, unknown, total, closeTeams, pct: Math.round(have / total * 100) };
     }
 
     function filteredTeams() {
@@ -1396,10 +1525,10 @@
       return teams;
     }
 
-    function teamSummary(team) {
+    function teamSummary(team, user = currentUser) {
       let have = 0, missing = 0, unknown = 0, dupes = 0;
       for (let i = 1; i <= team.total; i++) {
-        const s = sticker(team.code, i);
+        const s = sticker(team.code, i, user);
         if (s.status === "have") have++;
         if (s.status === "missing") missing++;
         if (s.status === "unknown") unknown++;
@@ -1501,7 +1630,7 @@
           <h2>Trade Center</h2>
           <p>${matches.length} possible swaps found for ${currentUser}. Add more duplicates and missing lists to make this smarter.</p>
         </div>
-        <button class="btn primary" data-copy-trades>Copy Trade Post</button>
+        <button class="btn primary" data-copy-trades>Copy Share Message</button>
       </section>
       <section class="trade-stack">${people.map(person => tradeCard(person)).join("")}</section>`;
       els.grid.querySelector("[data-copy-trades]")?.addEventListener("click", () => copyText(tradeText()));
@@ -1640,28 +1769,65 @@
       return String(number);
     }
 
-    function needText(user = currentUser) {
+    function compactGroupedCodeText(rows, title, emptyText, valueForRow) {
+      if (!rows.length) return `${title}\n${emptyText}`;
       const byGroup = new Map();
-      missingRows(user).forEach(row => {
+      rows.forEach(row => {
         if (!byGroup.has(row.group)) byGroup.set(row.group, new Map());
         const teamMap = byGroup.get(row.group);
         const compactCode = compactNeedCode(row.team);
         if (!teamMap.has(compactCode)) teamMap.set(compactCode, []);
-        teamMap.get(compactCode).push(compactNeedNumber(row.team, row.number));
+        teamMap.get(compactCode).push(valueForRow(row));
       });
-      if (!byGroup.size) return `${user} has no missing stickers recorded.`;
-      const lines = [`${user} needs:`];
+      const lines = [title];
       [...byGroup.entries()].sort(([a], [b]) => groupRank(a) - groupRank(b)).forEach(([group, teamMap]) => {
         lines.push(`\n${groupLabel(group)}`);
-        [...teamMap.entries()].forEach(([code, nums]) => lines.push(`${code} ${nums.join(", ")}`));
+        [...teamMap.entries()].forEach(([code, values]) => lines.push(`${code} ${values.join(", ")}`));
       });
       return lines.join("\n");
     }
 
+    function needText(user = currentUser) {
+      return compactGroupedCodeText(missingRows(user), `${user} needs:`, `${user} has no missing stickers recorded.`, row => compactNeedNumber(row.team, row.number));
+    }
+
+    function duplicateRows(user = currentUser) {
+      const rows = [];
+      TEAMS.forEach(team => {
+        for (let i = 1; i <= team.total; i++) {
+          const s = sticker(team.code, i, user);
+          if (Number(s.dupes || 0) > 0) {
+            rows.push({ team, group:team.group, groupOrder:groupRank(team.group), teamOrder:TEAMS.indexOf(team), number:i, qty:Number(s.dupes || 0), sourceCode:sourceStickerCode(team, i) || `${team.code}${i}`, title:stickerTitle(team, i) });
+          }
+        }
+      });
+      return rows.sort((a, b) => a.groupOrder - b.groupOrder || a.teamOrder - b.teamOrder || a.number - b.number);
+    }
+
+    function duplicateText(user = currentUser) {
+      return compactGroupedCodeText(duplicateRows(user), `${user} has dupes:`, "No duplicates recorded.", row => `${compactNeedNumber(row.team, row.number)}${row.qty > 1 ? ` x${row.qty}` : ""}`);
+    }
+
+    function compactTradeItem(match) {
+      return `${compactNeedCode(match.team)} ${compactNeedNumber(match.team, match.number)}${match.qty > 1 ? ` x${match.qty}` : ""}`;
+    }
+
     function tradeText() {
       const rows = tradeMatches();
-      if (!rows.length) return `${currentUser} has no automatic trade matches yet.`;
-      return [`Trade matches for ${currentUser}:`].concat(rows.map(m => `${m.direction === "give" ? "Give to" : "Get from"} ${m.other}: ${sourceStickerCode(m.team, m.number) || m.team.code + m.number} (${stickerTitle(m.team, m.number)})${m.qty > 1 ? " x" + m.qty : ""}`)).join("\n");
+      const lines = [`${currentUser} Panini WC2026 trade post`, "", needText(currentUser), "", duplicateText(currentUser), "", "Proposed trades:"];
+      if (!rows.length) {
+        lines.push("No automatic trade matches yet.");
+        return lines.join("\n");
+      }
+      USERS.filter(name => name !== currentUser).forEach(other => {
+        const get = rows.filter(row => row.other === other && row.direction === "get").map(compactTradeItem);
+        const give = rows.filter(row => row.other === other && row.direction === "give").map(compactTradeItem);
+        if (!get.length && !give.length) return;
+        lines.push(`\nWith ${other}`);
+        if (get.length) lines.push(`You get: ${get.join(", ")}`);
+        if (give.length) lines.push(`You give: ${give.join(", ")}`);
+      });
+      return lines.join("\n");
     }
 
     function parseQuick(text) {
@@ -1702,6 +1868,174 @@
       saveState();
       render();
       toast(`${items.length} sticker updates applied.`);
+    }
+
+    async function importMissingFile(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const rows = await readMissingImportRows(file);
+        const imported = extractMissingImport(rows);
+        if (!imported.length) {
+          toast("No missing stickers found in that file.");
+          return;
+        }
+        const uniqueCount = new Set(imported.map(item => stickerKey(item.code, item.number))).size;
+        if (!confirm(`Import missing list for ${currentUser}?\n\nParsed ${uniqueCount} missing stickers.\nThis replaces ${currentUser}'s missing list and keeps other collectors unchanged.`)) return;
+        const result = applyMissingImport(currentUser, imported);
+        saveState();
+        render();
+        toast(`Imported ${result.applied} missing stickers for ${currentUser}${result.skippedDupes ? `; skipped ${result.skippedDupes} with dupes` : ""}.`);
+      } catch (error) {
+        toast(error.message || "Could not import that missing list.");
+      } finally {
+        event.target.value = "";
+      }
+    }
+
+    function readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Could not read file."));
+        reader.readAsText(file);
+      });
+    }
+
+    function readFileAsArrayBuffer(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Could not read file."));
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    async function readMissingImportRows(file) {
+      const name = file.name.toLowerCase();
+      if (name.endsWith(".csv") || name.endsWith(".tsv")) {
+        const text = await readFileAsText(file);
+        return parseDelimitedObjects(text, name.endsWith(".tsv") ? "\t" : ",");
+      }
+      if (!window.XLSX) throw new Error("Excel import is still loading. Try again, or import CSV.");
+      const data = await readFileAsArrayBuffer(file);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames.find(name => name.toLowerCase().includes("missing")) || workbook.SheetNames[0];
+      return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+    }
+
+    function parseDelimitedObjects(text, delimiter) {
+      const rows = [];
+      let row = [], cell = "", quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i], next = text[i + 1];
+        if (quoted && ch === '"' && next === '"') {
+          cell += '"';
+          i++;
+        } else if (ch === '"') {
+          quoted = !quoted;
+        } else if (!quoted && ch === delimiter) {
+          row.push(cell);
+          cell = "";
+        } else if (!quoted && (ch === "\n" || ch === "\r")) {
+          if (ch === "\r" && next === "\n") i++;
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += ch;
+        }
+      }
+      row.push(cell);
+      rows.push(row);
+      const headers = (rows.shift() || []).map(header => header.replace(/^\uFEFF/, "").trim());
+      return rows.filter(r => r.some(v => String(v).trim())).map(r => Object.fromEntries(headers.map((header, index) => [header, r[index] ?? ""])));
+    }
+
+    function normalizedKey(value) {
+      return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function rowValue(row, names) {
+      const wanted = new Set(names.map(normalizedKey));
+      const key = Object.keys(row).find(k => wanted.has(normalizedKey(k)));
+      return key ? row[key] : "";
+    }
+
+    function extractMissingImport(rows) {
+      const imported = [];
+      rows.forEach(row => {
+        const code = String(rowValue(row, ["Panini Code", "Code"])).trim().toUpperCase();
+        if (!code) return;
+        const category = String(rowValue(row, ["Country / Category", "Country", "Category", "Team"]));
+        const section = String(rowValue(row, ["Section"]));
+        const page = Number(rowValue(row, ["Album Page", "Page"]) || 0);
+        const rawMissing = rowValue(row, ["Missing Stickers", "Missing", "Stickers"]);
+        if (section.trim().toLowerCase().startsWith("total")) return;
+        const team = resolveImportTeam(code, category, section, page);
+        if (!team) return;
+        parseMissingNumbers(rawMissing, team).forEach(number => {
+          if (number >= 1 && number <= team.total) imported.push({ code: team.code, number });
+        });
+      });
+      const seen = new Set();
+      return imported.filter(item => {
+        const key = stickerKey(item.code, item.number);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function resolveImportTeam(code, category, section, page) {
+      if (code === "FWC") {
+        const marker = `${category} ${section}`.toLowerCase();
+        return TEAMS.find(team => team.code === (marker.includes("history") || page >= 100 ? "FWC_HISTORY" : "FWC_SPECIAL"));
+      }
+      return TEAMS.find(team => team.code === code || team.albumCode === code);
+    }
+
+    function parseMissingNumbers(value, team) {
+      const text = String(value ?? "");
+      const numbers = [];
+      if (team?.code === "FWC_SPECIAL" && /\b00\b/.test(text)) numbers.push(9);
+      const pattern = /(\d+)\s*-\s*(\d+)|\d+/g;
+      let match;
+      while ((match = pattern.exec(text))) {
+        if (match[1] && match[2]) {
+          const start = Number(match[1]), end = Number(match[2]);
+          const step = start <= end ? 1 : -1;
+          for (let n = start; step > 0 ? n <= end : n >= end; n += step) numbers.push(n);
+        } else {
+          const n = Number(match[0]);
+          if (!(team?.code === "FWC_SPECIAL" && n === 0)) numbers.push(n);
+        }
+      }
+      return numbers;
+    }
+
+    function applyMissingImport(user, imported) {
+      const missingByTeam = new Map();
+      imported.forEach(item => {
+        if (!missingByTeam.has(item.code)) missingByTeam.set(item.code, new Set());
+        missingByTeam.get(item.code).add(item.number);
+      });
+      let applied = 0, skippedDupes = 0;
+      TEAMS.forEach(team => {
+        const missing = missingByTeam.get(team.code) || new Set();
+        for (let i = 1; i <= team.total; i++) {
+          const item = sticker(team.code, i, user);
+          if (missing.has(i) && Number(item.dupes || 0) > 0) {
+            item.status = "have";
+            skippedDupes++;
+          } else {
+            item.status = missing.has(i) ? "missing" : "have";
+            if (missing.has(i)) applied++;
+          }
+        }
+      });
+      return { applied, skippedDupes };
     }
 
     async function copyText(text) {
