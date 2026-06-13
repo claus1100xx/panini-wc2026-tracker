@@ -1,0 +1,1669 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panini World Cup 2026 Collection Hub</title>
+  <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6f1e7;
+      --muted: #9fa8a3;
+      --paper: #141817;
+      --panel: #1c2320;
+      --panel-2: #232c28;
+      --line: #344038;
+      --gold: #e7bb55;
+      --lime: #73d17c;
+      --red: #e15e57;
+      --blue: #67b7dc;
+      --orange: #e79b54;
+      --black: #0b0e0c;
+      --shadow: 0 22px 80px rgba(0,0,0,.35);
+      --radius: 8px;
+      font-family: Avenir Next, Trebuchet MS, Verdana, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(120deg, rgba(231,187,85,.09), transparent 32%),
+        radial-gradient(circle at 88% 12%, rgba(115,209,124,.14), transparent 26%),
+        linear-gradient(180deg, #0b0e0c 0%, #131816 58%, #0b0e0c 100%);
+      color: var(--ink);
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { width: min(1480px, calc(100% - 28px)); margin: 0 auto; padding: 18px 0 36px; }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(270px, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      padding: 16px 0 18px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, Times New Roman, serif;
+      font-size: clamp(2rem, 4vw, 4.6rem);
+      font-weight: 700;
+      line-height: .92;
+      letter-spacing: 0;
+    }
+
+    .tagline { margin-top: 12px; color: var(--muted); max-width: 760px; line-height: 1.45; }
+
+    .user-panel {
+      min-width: 340px;
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(28,35,32,.86);
+      border: 1px solid rgba(231,187,85,.26);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .label { display: block; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 6px; }
+    .select, .input, .textarea {
+      width: 100%;
+      min-height: 40px;
+      color: var(--ink);
+      background: #101512;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      outline: none;
+    }
+    .select:focus, .input:focus, .textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(231,187,85,.13); }
+    .textarea { resize: vertical; min-height: 86px; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #121714;
+      color: var(--ink);
+      padding: 8px 12px;
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      justify-content: center;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: var(--gold); }
+    .btn.primary { background: var(--gold); color: #16120a; border-color: var(--gold); font-weight: 800; }
+    .btn.good { border-color: rgba(115,209,124,.6); color: var(--lime); }
+    .btn.bad { border-color: rgba(225,94,87,.65); color: var(--red); }
+    .btn.blue { border-color: rgba(103,183,220,.65); color: var(--blue); }
+    .btn.icon { width: 38px; padding: 0; }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      gap: 14px;
+      margin: 16px 0;
+      align-items: stretch;
+    }
+
+    .score {
+      background: rgba(28,35,32,.92);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .score:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(231,187,85,.18), transparent 45%);
+      pointer-events: none;
+    }
+    .score-content { position: relative; display: grid; grid-template-columns: 118px 1fr; gap: 14px; align-items: center; }
+    .ring { width: 118px; height: 118px; position: relative; }
+    .ring svg { transform: rotate(-90deg); }
+    .ring circle { fill: none; stroke-width: 10; }
+    .ring .track { stroke: rgba(255,255,255,.1); }
+    .ring .fill { stroke: var(--gold); stroke-linecap: round; transition: stroke-dashoffset .4s ease; }
+    .ring-text { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+    .ring-text strong { display: block; font-size: 1.55rem; color: var(--gold); }
+    .ring-text span { display: block; color: var(--muted); font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; }
+    .score h2 { margin: 0 0 7px; font-size: 1.1rem; }
+    .score p { margin: 0; color: var(--muted); line-height: 1.4; font-size: .92rem; }
+
+    .metrics { display: grid; grid-template-columns: repeat(5, minmax(110px, 1fr)); gap: 10px; }
+    .metric {
+      background: rgba(28,35,32,.78);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 12px;
+      min-height: 94px;
+      display: grid;
+      align-content: space-between;
+    }
+    .metric strong { display: block; font-size: clamp(1.4rem, 2.3vw, 2.1rem); line-height: 1; }
+    .metric span { color: var(--muted); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; }
+    .metric small { color: var(--muted); }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.4fr repeat(3, minmax(135px, .6fr)) auto;
+      gap: 10px;
+      align-items: end;
+      padding: 12px;
+      background: rgba(20,24,23,.78);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+    }
+
+    .tabs { display: flex; gap: 5px; padding: 4px; background: #101512; border: 1px solid var(--line); border-radius: var(--radius); }
+    .tab {
+      flex: 1;
+      min-height: 34px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      padding: 7px 10px;
+      font-weight: 700;
+    }
+    .tab.active { background: var(--gold); color: #16120a; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .collection { min-width: 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 10px; }
+    .team {
+      background: rgba(28,35,32,.9);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .team.complete { border-color: rgba(115,209,124,.5); }
+    .team-head {
+      width: 100%;
+      min-height: 64px;
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 0;
+      background: rgba(255,255,255,.025);
+      color: var(--ink);
+      text-align: left;
+      padding: 10px;
+    }
+    .flag {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.14);
+      object-fit: cover;
+      background: #121714;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-weight: 900;
+      overflow: hidden;
+    }
+    .team-title { font-weight: 900; }
+    .team-sub { color: var(--muted); font-size: .78rem; margin-top: 2px; }
+    .pill {
+      border-radius: 999px;
+      padding: 5px 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--muted);
+      font-size: .74rem;
+      font-weight: 900;
+    }
+    .pill.ok { color: var(--lime); border-color: rgba(115,209,124,.4); }
+    .pill.miss { color: var(--red); border-color: rgba(225,94,87,.45); }
+    .bar { height: 4px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--lime), var(--gold)); transition: width .25s ease; }
+    .stickers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 10px; }
+    .sticker {
+      min-width: 0;
+      aspect-ratio: 1;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 7px;
+      background: #121714;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      position: relative;
+      font-weight: 900;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      user-select: none;
+    }
+    .sticker:hover { transform: translateY(-1px); border-color: var(--gold); }
+    .sticker.have { background: rgba(115,209,124,.16); color: #b8ffc0; border-color: rgba(115,209,124,.34); }
+    .sticker.missing { background: rgba(225,94,87,.18); color: #ffc2bd; border-color: rgba(225,94,87,.38); }
+    .sticker.unknown { background: rgba(255,255,255,.04); }
+    .sticker.trade-hit { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .sticker .dupe {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--gold);
+      color: #15100a;
+      font-size: .62rem;
+      border: 1px solid #15100a;
+    }
+    .sticker small {
+      position: absolute;
+      bottom: 3px;
+      max-width: calc(100% - 6px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: rgba(246,241,231,.5);
+      font-size: .52rem;
+      letter-spacing: 0;
+    }
+
+    .side { display: grid; gap: 10px; align-content: start; position: sticky; top: 86px; }
+    .panel {
+      background: rgba(28,35,32,.9);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+    .panel h3 { margin: 0 0 10px; font-size: 1rem; }
+    .panel p { color: var(--muted); line-height: 1.43; margin: 0 0 10px; }
+    .mini-list { display: grid; gap: 6px; max-height: 330px; overflow: auto; padding-right: 4px; }
+    .mini-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 8px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+    .mini-row strong { color: var(--ink); }
+    .empty { color: var(--muted); padding: 10px; border: 1px dashed rgba(255,255,255,.12); border-radius: var(--radius); }
+
+    .workspace-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 8px;
+      margin: 14px 0 0;
+      padding: 6px;
+      background: rgba(8, 11, 9, .64);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: var(--radius);
+      position: sticky;
+      top: 66px;
+      z-index: 18;
+      backdrop-filter: blur(16px);
+    }
+    .workspace-tab {
+      border: 0;
+      border-radius: 6px;
+      min-height: 42px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+    .workspace-tab.active {
+      background: linear-gradient(135deg, var(--gold), #fff2a6);
+      color: #14100a;
+      box-shadow: 0 10px 28px rgba(231,187,85,.2);
+    }
+
+    .album-pages {
+      display: grid;
+      gap: 18px;
+    }
+    .album-spread {
+      background:
+        linear-gradient(90deg, transparent calc(50% - 1px), rgba(68,52,28,.28) calc(50% - 1px), rgba(68,52,28,.28) calc(50% + 1px), transparent calc(50% + 1px)),
+        repeating-linear-gradient(0deg, rgba(0,0,0,.018), rgba(0,0,0,.018) 1px, transparent 1px, transparent 12px),
+        #efe6cf;
+      color: #18120c;
+      border: 1px solid rgba(231,187,85,.35);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 30px 70px rgba(0,0,0,.34);
+      position: relative;
+    }
+    .album-spread:before, .album-spread:after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      bottom: 10px;
+      width: 14px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(111,72,28,.12), rgba(255,255,255,.2), rgba(111,72,28,.08));
+      pointer-events: none;
+    }
+    .album-spread:before { left: 50%; transform: translateX(-22px); }
+    .album-spread:after { left: 50%; transform: translateX(8px); }
+    .album-spread-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(24,18,12,.16);
+      padding-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .album-spread-kicker {
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      color: #8a6b34;
+      font-weight: 900;
+    }
+    .album-spread-title {
+      font-family: Georgia, Times New Roman, serif;
+      font-size: clamp(1.4rem, 2.4vw, 2.35rem);
+      font-weight: 800;
+      line-height: .95;
+    }
+    .album-spread-meta {
+      color: #705a39;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .album-pages .team {
+      background: rgba(255,252,241,.82);
+      border-color: rgba(24,18,12,.18);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.52);
+    }
+    .album-pages .team-head {
+      background: rgba(24,18,12,.04);
+      color: #18120c;
+    }
+    .album-pages .team-sub,
+    .album-pages .pill { color: #776548; }
+    .album-pages .stickers { grid-template-columns: repeat(5, minmax(42px, 1fr)); }
+    .album-pages .sticker {
+      min-height: 54px;
+      background: rgba(255,255,255,.68);
+      color: #6a5d49;
+      border-color: rgba(24,18,12,.18);
+      box-shadow: inset 0 -8px 16px rgba(0,0,0,.04);
+    }
+    .album-pages .sticker.have {
+      background: linear-gradient(145deg, #f8f4e8, #d4f1c8);
+      color: #18532d;
+      border-color: rgba(24,91,44,.35);
+    }
+    .album-pages .sticker.missing {
+      background: repeating-linear-gradient(135deg, rgba(225,94,87,.2), rgba(225,94,87,.2) 6px, rgba(255,255,255,.68) 6px, rgba(255,255,255,.68) 12px);
+      color: #8c2d28;
+      border-color: rgba(140,45,40,.34);
+    }
+
+    .trade-board, .missing-board {
+      display: grid;
+      gap: 12px;
+    }
+    .trade-hero, .missing-hero {
+      background: linear-gradient(135deg, rgba(231,187,85,.18), rgba(103,183,220,.08));
+      border: 1px solid rgba(231,187,85,.28);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .trade-hero h2, .missing-hero h2 { margin: 0; font-family: Georgia, Times New Roman, serif; font-size: 2rem; line-height: 1; }
+    .trade-hero p, .missing-hero p { margin: 7px 0 0; color: var(--muted); }
+    .trade-stack {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+    .trade-card, .missing-team {
+      background: rgba(28,35,32,.9);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: 0 16px 45px rgba(0,0,0,.2);
+    }
+    .trade-card h3, .missing-team h3 { margin: 0 0 8px; }
+    .trade-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .trade-metric {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 7px;
+      padding: 9px;
+      background: rgba(255,255,255,.035);
+    }
+    .trade-metric strong { display: block; font-size: 1.45rem; }
+    .trade-metric span { color: var(--muted); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .trade-chip, .missing-chip {
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 999px;
+      padding: 6px 9px;
+      background: rgba(255,255,255,.04);
+      color: var(--ink);
+      font-size: .78rem;
+    }
+    .trade-chip.give { border-color: rgba(115,209,124,.35); color: #c8ffd0; }
+    .trade-chip.get { border-color: rgba(103,183,220,.4); color: #bde9ff; }
+    .missing-team-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .mobile-dock {
+      display: none;
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 90;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      padding: 6px;
+      background: rgba(12,15,13,.88);
+      border: 1px solid rgba(231,187,85,.28);
+      border-radius: 12px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.48);
+      backdrop-filter: blur(18px);
+    }
+    .mobile-dock button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: .76rem;
+    }
+    .mobile-dock button.active {
+      background: var(--gold);
+      color: #14100a;
+    }
+
+    body {
+      background:
+        linear-gradient(115deg, rgba(231,187,85,.11), transparent 26%, rgba(103,183,220,.08) 68%, transparent),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0, rgba(255,255,255,.025) 1px, transparent 1px, transparent 72px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0, rgba(255,255,255,.018) 1px, transparent 1px, transparent 72px),
+        linear-gradient(180deg, #080b09 0%, #141b16 54%, #080b09 100%);
+    }
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, transparent 0 9%, rgba(231,187,85,.07) 9% 9.4%, transparent 9.4% 90.6%, rgba(231,187,85,.07) 90.6% 91%, transparent 91%),
+        linear-gradient(180deg, transparent 0 17%, rgba(255,255,255,.04) 17% 17.3%, transparent 17.3% 82.7%, rgba(255,255,255,.04) 82.7% 83%, transparent 83%);
+      mask-image: linear-gradient(180deg, rgba(0,0,0,.8), transparent 88%);
+    }
+    .app { padding-top: 14px; }
+    .topbar {
+      padding: 22px;
+      margin-top: 6px;
+      border: 1px solid rgba(231,187,85,.26);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(231,187,85,.16), rgba(28,35,32,.78) 36%, rgba(103,183,220,.11)),
+        rgba(20,24,23,.84);
+      box-shadow: var(--shadow);
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .topbar:after {
+      content: "WC26";
+      position: absolute;
+      right: 22px;
+      top: -16px;
+      font-family: Georgia, Times New Roman, serif;
+      font-size: 7rem;
+      font-weight: 900;
+      color: rgba(255,255,255,.035);
+      letter-spacing: 0;
+      pointer-events: none;
+    }
+    h1 {
+      max-width: 900px;
+      font-size: clamp(1.9rem, 3.1vw, 3.5rem);
+      text-wrap: balance;
+      color: #fff7df;
+      text-shadow: 0 10px 30px rgba(0,0,0,.32);
+    }
+    .tagline { color: #c9c1ae; }
+    .user-panel {
+      background: rgba(12,15,13,.72);
+      border-color: rgba(255,255,255,.14);
+      position: relative;
+      z-index: 1;
+    }
+    .dashboard { margin: 14px 0; }
+    .score, .metric, .panel, .team {
+      box-shadow: 0 18px 50px rgba(0,0,0,.2);
+    }
+    .metric {
+      position: relative;
+      overflow: hidden;
+    }
+    .metric:before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--lime), var(--blue));
+    }
+    .metric strong { font-family: Georgia, Times New Roman, serif; color: #fff7df; }
+    .workspace-strip { top: 0; }
+    .toolbar { top: 62px; }
+    .team {
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .team:hover {
+      transform: translateY(-2px);
+      border-color: rgba(231,187,85,.34);
+      box-shadow: 0 24px 70px rgba(0,0,0,.28);
+    }
+    .sticker.have:after, .sticker.trade-hit:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(120deg, transparent 0 34%, rgba(255,255,255,.18) 46%, transparent 58% 100%);
+      opacity: .35;
+      mix-blend-mode: screen;
+    }
+    .sticker.foil {
+      border-color: rgba(121,214,255,.62);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 0 24px rgba(121,214,255,.12);
+    }
+    .sticker.foil:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background:
+        linear-gradient(120deg, transparent 10%, rgba(121,214,255,.24) 32%, rgba(255,255,255,.42) 48%, rgba(231,187,85,.22) 64%, transparent 86%);
+      opacity: .42;
+      mix-blend-mode: screen;
+    }
+    .collection {
+      scroll-margin-top: 140px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(0,0,0,.62);
+      z-index: 100;
+      padding: 16px;
+      backdrop-filter: blur(8px);
+    }
+    .modal.show { display: grid; }
+    .dialog {
+      width: min(760px, 100%);
+      max-height: min(86vh, 760px);
+      overflow: auto;
+      background: #151b18;
+      border: 1px solid rgba(231,187,85,.38);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .dialog-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; margin-bottom: 12px; }
+    .dialog h2 { margin: 0; font-family: Georgia, Times New Roman, serif; font-size: 1.8rem; letter-spacing: 0; }
+    .dialog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
+    .modal .sticker { min-height: 86px; aspect-ratio: auto; padding: 8px 5px; }
+    .modal .sticker small {
+      position: static;
+      display: block;
+      max-width: 100%;
+      white-space: normal;
+      line-height: 1.12;
+      font-size: .66rem;
+      color: rgba(246,241,231,.72);
+    }
+    .bulk { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 200;
+      display: grid;
+      gap: 8px;
+    }
+    .toast-item {
+      padding: 10px 12px;
+      background: #151b18;
+      border: 1px solid rgba(231,187,85,.38);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      color: var(--ink);
+      animation: toast .25s ease, fade .3s ease 2.6s forwards;
+    }
+    @keyframes toast { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes fade { to { opacity: 0; transform: translateY(8px); } }
+
+    .hidden { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+    @media (max-width: 1120px) {
+      .topbar, .dashboard, .layout { grid-template-columns: 1fr; }
+      .user-panel { min-width: 0; }
+      .side { position: static; grid-template-columns: repeat(2, 1fr); }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .toolbar .wide { grid-column: 1 / -1; }
+      .album-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      body { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+      .app { width: min(100% - 18px, 1480px); padding-top: 8px; padding-bottom: 18px; }
+      .topbar { padding: 14px; }
+      .topbar:after { font-size: 4.4rem; right: 12px; top: -8px; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .score-content { grid-template-columns: 1fr; }
+      .workspace-strip { display: none; }
+      .toolbar { grid-template-columns: 1fr; position: static; }
+      .side { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .stickers { grid-template-columns: repeat(4, 1fr); }
+      .actions .btn { flex: 1; }
+      .album-spread { padding: 10px; }
+      .album-spread:before, .album-spread:after { display: none; }
+      .album-spread-head { align-items: start; }
+      .album-spread-meta { white-space: normal; }
+      .album-pages .stickers { grid-template-columns: repeat(4, 1fr); }
+      .trade-hero, .missing-hero { grid-template-columns: 1fr; }
+      .mobile-dock { display: grid; }
+      .toast { bottom: calc(88px + env(safe-area-inset-bottom)); left: 12px; right: 12px; }
+      .toast-item { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <section>
+        <h1>World Cup 2026 Sticker Room</h1>
+        <div class="tagline">A shared Panini command center for tracking albums, duplicates, missing stickers, pack luck, and trade opportunities across Claus, Holger, Karl-Eric, and Sam.</div>
+      </section>
+      <section class="user-panel" aria-label="User and file controls">
+        <label>
+          <span class="label">Collector</span>
+          <select class="select" id="userSelect"></select>
+        </label>
+        <div class="actions">
+          <button class="btn primary" id="exportBtn" title="Export the current tracker to Excel">Export Excel</button>
+          <button class="btn blue" id="backupBtn" title="Download a JSON backup">Backup</button>
+          <button class="btn" id="restoreBtn" title="Restore from a JSON backup">Restore</button>
+          <input id="restoreInput" type="file" accept="application/json" class="hidden">
+        </div>
+      </section>
+    </header>
+
+    <section class="dashboard" aria-label="Collection dashboard">
+      <article class="score">
+        <div class="score-content">
+          <div class="ring">
+            <svg viewBox="0 0 132 132" width="118" height="118" aria-hidden="true">
+              <circle class="track" cx="66" cy="66" r="56"></circle>
+              <circle class="fill" id="progressRing" cx="66" cy="66" r="56" stroke-dasharray="351.86" stroke-dashoffset="351.86"></circle>
+            </svg>
+            <div class="ring-text"><div><strong id="pct">0%</strong><span>complete</span></div></div>
+          </div>
+          <div>
+            <h2 id="collectorHeadline">Claus tracker</h2>
+            <p id="collectorSubline">Seeded from the missing-stickers workbook.</p>
+          </div>
+        </div>
+      </article>
+      <section class="metrics">
+        <div class="metric"><span>Have</span><strong id="haveMetric">0</strong><small>stickers collected</small></div>
+        <div class="metric"><span>Missing</span><strong id="missingMetric">0</strong><small>shopping list</small></div>
+        <div class="metric"><span>Unknown</span><strong id="unknownMetric">0</strong><small>not tracked yet</small></div>
+        <div class="metric"><span>Dupes</span><strong id="dupeMetric">0</strong><small>trade currency</small></div>
+        <div class="metric"><span>Trade Hits</span><strong id="tradeMetric">0</strong><small>possible swaps</small></div>
+      </section>
+    </section>
+
+    <section class="workspace-strip" aria-label="Workspace">
+      <button class="workspace-tab active" data-workspace="album">Album Pages</button>
+      <button class="workspace-tab" data-workspace="grid">Team Grid</button>
+      <button class="workspace-tab" data-workspace="missing">Missing Desk</button>
+      <button class="workspace-tab" data-workspace="trades">Trade Center</button>
+    </section>
+
+    <nav class="toolbar" aria-label="Collection filters">
+      <label class="wide">
+        <span class="label">Search</span>
+        <input class="input" id="searchInput" type="search" placeholder="Team, code, sticker number, page">
+      </label>
+      <label>
+        <span class="label">Group</span>
+        <select class="select" id="groupFilter"></select>
+      </label>
+      <label>
+        <span class="label">View</span>
+        <select class="select" id="viewFilter">
+          <option value="all">All stickers</option>
+          <option value="missing">Missing only</option>
+          <option value="dupes">Duplicates only</option>
+          <option value="unknown">Unknown only</option>
+          <option value="complete">Completed teams</option>
+        </select>
+      </label>
+      <label>
+        <span class="label">Sort</span>
+        <select class="select" id="sortFilter">
+          <option value="album">Album order</option>
+          <option value="missing">Most missing</option>
+          <option value="dupes">Most dupes</option>
+          <option value="alpha">A to Z</option>
+          <option value="progress">Most complete</option>
+        </select>
+      </label>
+      <div>
+        <span class="label">Mode</span>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-mode="mark">Mark</button>
+          <button class="tab" data-mode="dupe">Dupe</button>
+          <button class="tab" data-mode="trade">Trade</button>
+        </div>
+      </div>
+    </nav>
+
+    <section class="layout">
+      <section class="collection">
+        <div id="collectionGrid" class="grid"></div>
+      </section>
+      <aside class="side">
+        <section class="panel">
+          <h3>Quick Add</h3>
+          <p>Enter stickers as codes like <strong>MEX 6</strong>, <strong>CC10</strong>, or comma batches like <strong>GER 9, 12, 13</strong>.</p>
+          <textarea class="textarea" id="quickInput" placeholder="MEX 6, 13, 18&#10;CC1, CC2&#10;FWC history 16"></textarea>
+          <div class="actions" style="margin-top:8px">
+            <button class="btn good" id="quickHave">Mark Have</button>
+            <button class="btn bad" id="quickMissing">Mark Missing</button>
+            <button class="btn" id="quickDupe">Add Dupes</button>
+          </div>
+        </section>
+        <section class="panel">
+          <h3>Trade Radar</h3>
+          <div id="tradeList" class="mini-list"></div>
+        </section>
+        <section class="panel">
+          <h3>Need List</h3>
+          <div class="actions" style="margin-bottom:8px">
+            <button class="btn" id="copyNeed">Copy</button>
+            <button class="btn" id="copyTrade">Copy Trade Post</button>
+          </div>
+          <div id="needList" class="mini-list"></div>
+        </section>
+        <section class="panel">
+          <h3>Collection Tools</h3>
+          <div class="actions">
+            <button class="btn" id="packBtn">Open Pack</button>
+            <button class="btn" id="resetUserBtn">Reset User</button>
+            <button class="btn bad" id="factoryBtn">Factory Reset</button>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <nav class="mobile-dock" aria-label="Mobile workspace shortcuts">
+    <button class="active" data-workspace="album">Album</button>
+    <button data-workspace="missing">Missing</button>
+    <button data-workspace="trades">Trades</button>
+    <button data-mobile-focus="quick">Add</button>
+  </nav>
+
+  <div class="modal" id="teamModal" aria-hidden="true">
+    <div class="dialog">
+      <div class="dialog-head">
+        <div>
+          <h2 id="modalTitle"></h2>
+          <div class="tagline" id="modalSub"></div>
+        </div>
+        <button class="btn icon" id="closeModal" aria-label="Close">X</button>
+      </div>
+      <div class="bulk">
+        <button class="btn good" id="teamAllHave">Team Complete</button>
+        <button class="btn bad" id="teamAllMissing">All Missing</button>
+        <button class="btn" id="teamAllUnknown">Clear Team</button>
+      </div>
+      <div id="modalGrid" class="dialog-grid"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="packModal" aria-hidden="true">
+    <div class="dialog">
+      <div class="dialog-head">
+        <div>
+          <h2>Pack Opener</h2>
+          <div class="tagline">Five random stickers. New finds update the selected collector; repeats become duplicates.</div>
+        </div>
+        <button class="btn icon" id="closePack" aria-label="Close">X</button>
+      </div>
+      <div id="packGrid" class="dialog-grid"></div>
+      <div class="actions" style="margin-top:12px">
+        <button class="btn primary" id="openPackNow">Open Pack</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script src="checklist-insider-data.js"></script>
+  <script>
+    const USERS = ["Claus", "Holger", "Karl-Eric", "Sam"];
+    const STORAGE_KEY = "panini-wc2026-collection-hub-v1";
+    const CHECKLIST = window.CHECKLIST_INSIDER || { source: "Checklist Insider", sourceUrl: "", stickers: {} };
+    const STICKER_META = CHECKLIST.stickers || {};
+    const SPECIAL_ALIASES = { FWC_SPECIAL: "FWC", FWC_HISTORY: "HIST", CC: "CC" };
+    const TEAMS = [
+      { code:"FWC_SPECIAL", albumCode:"FWC", name:"Special Stickers", group:"Special", flag:null, total:10, page:1 },
+      { code:"MEX", name:"Mexico", group:"A", flag:"mx", total:20, page:8 },
+      { code:"RSA", name:"South Africa", group:"A", flag:"za", total:20, page:10 },
+      { code:"KOR", name:"Korea", group:"A", flag:"kr", total:20, page:12 },
+      { code:"CZE", name:"Czechia", group:"A", flag:"cz", total:20, page:14 },
+      { code:"CAN", name:"Canada", group:"B", flag:"ca", total:20, page:16 },
+      { code:"BIH", name:"Bosnia-Herzegovina", group:"B", flag:"ba", total:20, page:18 },
+      { code:"QAT", name:"Qatar", group:"B", flag:"qa", total:20, page:20 },
+      { code:"SUI", name:"Switzerland", group:"B", flag:"ch", total:20, page:22 },
+      { code:"BRA", name:"Brazil", group:"C", flag:"br", total:20, page:24 },
+      { code:"MAR", name:"Morocco", group:"C", flag:"ma", total:20, page:26 },
+      { code:"HAI", name:"Haiti", group:"C", flag:"ht", total:20, page:28 },
+      { code:"SCO", name:"Scotland", group:"C", flag:"gb-sct", total:20, page:30 },
+      { code:"USA", name:"U.S.A.", group:"D", flag:"us", total:20, page:32 },
+      { code:"PAR", name:"Paraguay", group:"D", flag:"py", total:20, page:34 },
+      { code:"AUS", name:"Australia", group:"D", flag:"au", total:20, page:36 },
+      { code:"TUR", name:"Turkey", group:"D", flag:"tr", total:20, page:38 },
+      { code:"GER", name:"Germany", group:"E", flag:"de", total:20, page:40 },
+      { code:"CUW", name:"Curacao", group:"E", flag:"cw", total:20, page:42 },
+      { code:"CIV", name:"Ivory Coast", group:"E", flag:"ci", total:20, page:44 },
+      { code:"ECU", name:"Ecuador", group:"E", flag:"ec", total:20, page:46 },
+      { code:"NED", name:"Netherlands", group:"F", flag:"nl", total:20, page:48 },
+      { code:"JPN", name:"Japan", group:"F", flag:"jp", total:20, page:50 },
+      { code:"SWE", name:"Sweden", group:"F", flag:"se", total:20, page:52 },
+      { code:"TUN", name:"Tunisia", group:"F", flag:"tn", total:20, page:54 },
+      { code:"BEL", name:"Belgium", group:"G", flag:"be", total:20, page:58 },
+      { code:"EGY", name:"Egypt", group:"G", flag:"eg", total:20, page:60 },
+      { code:"IRN", name:"Iran", group:"G", flag:"ir", total:20, page:62 },
+      { code:"NZL", name:"New Zealand", group:"G", flag:"nz", total:20, page:64 },
+      { code:"ESP", name:"Spain", group:"H", flag:"es", total:20, page:66 },
+      { code:"CPV", name:"Cabo Verde", group:"H", flag:"cv", total:20, page:68 },
+      { code:"KSA", name:"Saudi Arabia", group:"H", flag:"sa", total:20, page:70 },
+      { code:"URU", name:"Uruguay", group:"H", flag:"uy", total:20, page:72 },
+      { code:"FRA", name:"France", group:"I", flag:"fr", total:20, page:74 },
+      { code:"SEN", name:"Senegal", group:"I", flag:"sn", total:20, page:76 },
+      { code:"IRQ", name:"Iraq", group:"I", flag:"iq", total:20, page:78 },
+      { code:"NOR", name:"Norway", group:"I", flag:"no", total:20, page:80 },
+      { code:"ARG", name:"Argentina", group:"J", flag:"ar", total:20, page:82 },
+      { code:"ALG", name:"Algeria", group:"J", flag:"dz", total:20, page:84 },
+      { code:"AUT", name:"Austria", group:"J", flag:"at", total:20, page:86 },
+      { code:"JOR", name:"Jordan", group:"J", flag:"jo", total:20, page:88 },
+      { code:"POR", name:"Portugal", group:"K", flag:"pt", total:20, page:90 },
+      { code:"COD", name:"DR Congo", group:"K", flag:"cd", total:20, page:92 },
+      { code:"UZB", name:"Uzbekistan", group:"K", flag:"uz", total:20, page:94 },
+      { code:"COL", name:"Colombia", group:"K", flag:"co", total:20, page:96 },
+      { code:"ENG", name:"England", group:"L", flag:"gb-eng", total:20, page:98 },
+      { code:"CRO", name:"Croatia", group:"L", flag:"hr", total:20, page:100 },
+      { code:"GHA", name:"Ghana", group:"L", flag:"gh", total:20, page:102 },
+      { code:"PAN", name:"Panama", group:"L", flag:"pa", total:20, page:104 },
+      { code:"FWC_HISTORY", albumCode:"FWC", name:"World Cup History", group:"Special", flag:null, total:20, page:108 },
+      { code:"CC", albumCode:"CC", name:"Coca-Cola", group:"Special", flag:null, total:12, page:112 }
+    ];
+    const CLAUS_MISSING = {
+      FWC_SPECIAL:[4], MEX:[6,13,18,19], RSA:[1,2,10,16], KOR:[17], CZE:[2,19],
+      BIH:[5,6,16], QAT:[1,2], SUI:[5,6,16], BRA:[11], MAR:[5,15,19],
+      HAI:[6,14,15], SCO:[2,9,10,20], USA:[15], PAR:[6], AUS:[10], TUR:[19],
+      GER:[9,12,13,15,16,19], CUW:[4,8,14,15], CIV:[2,6], ECU:[12,17],
+      NED:[1], JPN:[5,7,14,20], SWE:[9,12,13], TUN:[10], BEL:[7], EGY:[11],
+      IRN:[9], NZL:[20], ESP:[13], CPV:[5,20], KSA:[1,3], URU:[3], FRA:[2,10],
+      IRQ:[2,7,8,17,18], ARG:[4], ALG:[8,10,19], AUT:[3], JOR:[14],
+      POR:[7,16], UZB:[7], COL:[19], ENG:[11,20], GHA:[5,15,16], PAN:[2],
+      FWC_HISTORY:[16], CC:[1,2,4,5,8,10,12]
+    };
+
+    const totalStickers = TEAMS.reduce((sum, team) => sum + team.total, 0);
+    const stickerPool = TEAMS.flatMap(team => Array.from({ length: team.total }, (_, i) => ({ code: team.code, number: i + 1 })));
+    let state = loadState();
+    let currentUser = state.currentUser || "Claus";
+    let mode = "mark";
+    let workspace = "album";
+    let activeTeam = null;
+    let tradeHitKeys = new Set();
+
+    const $ = (id) => document.getElementById(id);
+    const els = {
+      userSelect: $("userSelect"), groupFilter: $("groupFilter"), viewFilter: $("viewFilter"), sortFilter: $("sortFilter"),
+      searchInput: $("searchInput"), grid: $("collectionGrid"), needList: $("needList"), tradeList: $("tradeList"),
+      teamModal: $("teamModal"), modalTitle: $("modalTitle"), modalSub: $("modalSub"), modalGrid: $("modalGrid")
+    };
+
+    function makeUser(seedClaus) {
+      const stickers = {};
+      TEAMS.forEach(team => {
+        stickers[team.code] = {};
+        for (let i = 1; i <= team.total; i++) {
+          const missing = seedClaus && CLAUS_MISSING[team.code]?.includes(i);
+          stickers[team.code][i] = { status: seedClaus ? (missing ? "missing" : "have") : "unknown", dupes: 0 };
+        }
+      });
+      return { stickers, packs: 0, updatedAt: new Date().toISOString() };
+    }
+
+    function defaultState() {
+      const users = {};
+      USERS.forEach(name => users[name] = makeUser(name === "Claus"));
+      return { version: 1, currentUser: "Claus", users };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultState();
+        const parsed = JSON.parse(raw);
+        if (!parsed.users) return defaultState();
+        USERS.forEach(name => {
+          if (!parsed.users[name]) parsed.users[name] = makeUser(name === "Claus");
+          TEAMS.forEach(team => {
+            if (!parsed.users[name].stickers[team.code]) parsed.users[name].stickers[team.code] = {};
+            for (let i = 1; i <= team.total; i++) {
+              if (!parsed.users[name].stickers[team.code][i]) {
+                parsed.users[name].stickers[team.code][i] = { status: name === "Claus" && CLAUS_MISSING[team.code]?.includes(i) ? "missing" : name === "Claus" ? "have" : "unknown", dupes: 0 };
+              }
+            }
+          });
+        });
+        return parsed;
+      } catch {
+        return defaultState();
+      }
+    }
+
+    function saveState() {
+      state.currentUser = currentUser;
+      state.users[currentUser].updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function userData(user = currentUser) { return state.users[user]; }
+    function sticker(teamCode, number, user = currentUser) { return state.users[user].stickers[teamCode][number]; }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch]));
+    }
+
+    function sourceStickerCode(team, number) {
+      if (team.code === "CC") return `CC${number}`;
+      if (team.code === "FWC_SPECIAL") {
+        if (number <= 8) return `FWC${number}`;
+        if (number === 9) return "00";
+        return null;
+      }
+      if (team.code === "FWC_HISTORY") return number >= 9 && number <= 19 ? `FWC${number}` : null;
+      return `${team.code}${number}`;
+    }
+
+    function stickerMeta(team, number) {
+      const code = sourceStickerCode(team, number);
+      return code ? STICKER_META[code] || null : null;
+    }
+
+    function stickerTitle(team, number) {
+      const meta = stickerMeta(team, number);
+      return meta ? meta.title : "Checklist match pending";
+    }
+
+    function stickerDetail(team, number) {
+      const meta = stickerMeta(team, number);
+      if (!meta) return "No Checklist Insider match";
+      return [meta.title, meta.country, meta.type].filter(Boolean).join(" · ");
+    }
+
+    function label(team, number) {
+      if (team.code === "CC") return "CC" + number;
+      if (team.code === "FWC_SPECIAL") return "FWC " + number;
+      if (team.code === "FWC_HISTORY") return "FWC" + number;
+      return String(number);
+    }
+    function rarity(team, number) {
+      if (team.group === "Special") return number === 1 ? 4 : 3;
+      if (["ARG","BRA","FRA","GER","ESP","ENG","POR"].includes(team.code) && [1,10].includes(number)) return 5;
+      if (number === 1) return 4;
+      if (number <= 5) return 3;
+      if (number <= 15) return 2;
+      return 1;
+    }
+    function stars(n) { return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n); }
+
+    function stats(user = currentUser) {
+      let have = 0, missing = 0, unknown = 0, dupes = 0, completeTeams = 0;
+      TEAMS.forEach(team => {
+        let teamMissing = 0, teamUnknown = 0;
+        for (let i = 1; i <= team.total; i++) {
+          const s = sticker(team.code, i, user);
+          if (s.status === "have") have++;
+          if (s.status === "missing") { missing++; teamMissing++; }
+          if (s.status === "unknown") { unknown++; teamUnknown++; }
+          dupes += Number(s.dupes || 0);
+        }
+        if (!teamMissing && !teamUnknown) completeTeams++;
+      });
+      return { have, missing, unknown, dupes, completeTeams, pct: Math.round(have / totalStickers * 100), trades: tradeMatches(user).length };
+    }
+
+    function tradeMatches(user = currentUser) {
+      const matches = [];
+      USERS.filter(name => name !== user).forEach(other => {
+        TEAMS.forEach(team => {
+          for (let i = 1; i <= team.total; i++) {
+            const mine = sticker(team.code, i, user);
+            const theirs = sticker(team.code, i, other);
+            if ((mine.dupes || 0) > 0 && theirs.status === "missing") {
+              matches.push({ direction:"give", other, team, number:i, qty:mine.dupes });
+            }
+            if (mine.status === "missing" && (theirs.dupes || 0) > 0) {
+              matches.push({ direction:"get", other, team, number:i, qty:theirs.dupes });
+            }
+          }
+        });
+      });
+      return matches;
+    }
+
+    function initControls() {
+      els.userSelect.innerHTML = USERS.map(name => `<option value="${name}">${name}</option>`).join("");
+      els.userSelect.value = currentUser;
+      els.groupFilter.innerHTML = ["All groups", ...Array.from(new Set(TEAMS.map(t => t.group)))].map((g, i) => `<option value="${i ? g : "all"}">${g}</option>`).join("");
+      document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => {
+        mode = btn.dataset.mode;
+        document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+        toast(mode === "mark" ? "Click stickers to cycle status." : mode === "dupe" ? "Click stickers to add duplicates." : "Trade mode highlights useful swaps.");
+        render();
+      }));
+      document.querySelectorAll("[data-workspace]").forEach(btn => btn.addEventListener("click", () => setWorkspace(btn.dataset.workspace)));
+      document.querySelector("[data-mobile-focus='quick']").addEventListener("click", () => {
+        document.querySelector("#quickInput").scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => document.querySelector("#quickInput").focus(), 260);
+      });
+      els.userSelect.addEventListener("change", () => { currentUser = els.userSelect.value; saveState(); render(); });
+      [els.groupFilter, els.viewFilter, els.sortFilter, els.searchInput].forEach(el => el.addEventListener("input", render));
+      $("closeModal").addEventListener("click", closeTeamModal);
+      $("teamModal").addEventListener("click", e => { if (e.target === $("teamModal")) closeTeamModal(); });
+      $("teamAllHave").addEventListener("click", () => bulkTeam("have"));
+      $("teamAllMissing").addEventListener("click", () => bulkTeam("missing"));
+      $("teamAllUnknown").addEventListener("click", () => bulkTeam("unknown"));
+      $("quickHave").addEventListener("click", () => quickApply("have"));
+      $("quickMissing").addEventListener("click", () => quickApply("missing"));
+      $("quickDupe").addEventListener("click", () => quickApply("dupe"));
+      $("copyNeed").addEventListener("click", () => copyText(needText()));
+      $("copyTrade").addEventListener("click", () => copyText(tradeText()));
+      $("exportBtn").addEventListener("click", exportExcel);
+      $("backupBtn").addEventListener("click", backupJson);
+      $("restoreBtn").addEventListener("click", () => $("restoreInput").click());
+      $("restoreInput").addEventListener("change", restoreJson);
+      $("packBtn").addEventListener("click", openPackModal);
+      $("closePack").addEventListener("click", closePackModal);
+      $("packModal").addEventListener("click", e => { if (e.target === $("packModal")) closePackModal(); });
+      $("openPackNow").addEventListener("click", openPack);
+      $("resetUserBtn").addEventListener("click", resetCurrentUser);
+      $("factoryBtn").addEventListener("click", factoryReset);
+    }
+
+    function setWorkspace(next) {
+      workspace = next;
+      document.querySelectorAll("[data-workspace]").forEach(btn => btn.classList.toggle("active", btn.dataset.workspace === workspace));
+      render();
+    }
+
+    function render() {
+      renderStats();
+      tradeHitKeys = mode === "trade" || workspace === "trades"
+        ? new Set(tradeMatches().map(match => stickerKey(match.team.code, match.number)))
+        : new Set();
+      renderGrid();
+      renderSidebars();
+      if (activeTeam) renderModalTeam(activeTeam);
+    }
+
+    function stickerKey(code, number) {
+      return `${code}:${number}`;
+    }
+
+    function renderStats() {
+      const s = stats();
+      $("collectorHeadline").textContent = `${currentUser}'s album`;
+      $("collectorSubline").textContent = currentUser === "Claus"
+        ? "Seeded from Panini_World_Cup_Missing_Stickers.xlsx. Sticker names sourced from Checklist Insider."
+        : "No workbook seed was applied. Sticker names sourced from Checklist Insider.";
+      $("pct").textContent = `${s.pct}%`;
+      $("haveMetric").textContent = s.have;
+      $("missingMetric").textContent = s.missing;
+      $("unknownMetric").textContent = s.unknown;
+      $("dupeMetric").textContent = s.dupes;
+      $("tradeMetric").textContent = s.trades;
+      $("progressRing").style.strokeDashoffset = 351.86 * (1 - s.pct / 100);
+    }
+
+    function filteredTeams() {
+      const group = els.groupFilter.value;
+      const view = els.viewFilter.value;
+      const query = els.searchInput.value.trim().toLowerCase();
+      let teams = TEAMS.filter(team => group === "all" || team.group === group);
+      teams = teams.filter(team => {
+        const summary = teamSummary(team);
+        if (view === "missing" && !summary.missing) return false;
+        if (view === "dupes" && !summary.dupes) return false;
+        if (view === "unknown" && !summary.unknown) return false;
+        if (view === "complete" && (summary.missing || summary.unknown)) return false;
+        if (!query) return true;
+        const text = `${team.name} ${team.code} ${team.albumCode || ""} ${team.group} ${team.page}`.toLowerCase();
+        if (text.includes(query)) return true;
+        const nums = Array.from({ length: team.total }, (_, i) => {
+          const number = i + 1;
+          const meta = stickerMeta(team, number);
+          return `${label(team, number)} ${sourceStickerCode(team, number) || ""} ${meta?.title || ""} ${meta?.country || ""} ${meta?.type || ""}`.toLowerCase();
+        }).join(" ");
+        return nums.includes(query);
+      });
+      const sort = els.sortFilter.value;
+      teams.sort((a, b) => {
+        const sa = teamSummary(a), sb = teamSummary(b);
+        if (sort === "missing") return sb.missing - sa.missing;
+        if (sort === "dupes") return sb.dupes - sa.dupes;
+        if (sort === "alpha") return a.name.localeCompare(b.name);
+        if (sort === "progress") return sb.have - sa.have;
+        return TEAMS.indexOf(a) - TEAMS.indexOf(b);
+      });
+      return teams;
+    }
+
+    function teamSummary(team) {
+      let have = 0, missing = 0, unknown = 0, dupes = 0;
+      for (let i = 1; i <= team.total; i++) {
+        const s = sticker(team.code, i);
+        if (s.status === "have") have++;
+        if (s.status === "missing") missing++;
+        if (s.status === "unknown") unknown++;
+        dupes += Number(s.dupes || 0);
+      }
+      return { have, missing, unknown, dupes };
+    }
+
+    function renderGrid() {
+      const teams = filteredTeams();
+      if (workspace === "trades") return renderTradeWorkspace();
+      if (workspace === "missing") return renderMissingWorkspace(teams);
+      if (workspace === "album") return renderAlbumWorkspace(teams);
+      els.grid.className = "grid";
+      els.grid.innerHTML = teams.map(team => teamCard(team)).join("") || `<div class="empty">No teams match those filters.</div>`;
+      bindCollectionEvents();
+    }
+
+    function bindCollectionEvents() {
+      els.grid.querySelectorAll("[data-team-open]").forEach(btn => btn.addEventListener("click", () => openTeamModal(btn.dataset.teamOpen)));
+      els.grid.querySelectorAll("[data-sticker]").forEach(btn => btn.addEventListener("click", () => handleStickerClick(btn.dataset.code, Number(btn.dataset.number))));
+    }
+
+    function renderAlbumWorkspace(teams) {
+      els.grid.className = "album-pages";
+      const byGroup = new Map();
+      teams.forEach(team => {
+        const key = team.group;
+        if (!byGroup.has(key)) byGroup.set(key, []);
+        byGroup.get(key).push(team);
+      });
+      els.grid.innerHTML = [...byGroup.entries()].map(([group, groupTeams]) => {
+        const have = groupTeams.reduce((sum, team) => sum + teamSummary(team).have, 0);
+        const total = groupTeams.reduce((sum, team) => sum + team.total, 0);
+        const pages = groupTeams.map(team => team.page).filter(Boolean);
+        const title = group === "Special" ? "Tournament Specials" : `Group ${group}`;
+        const range = pages.length ? `pages ${Math.min(...pages)}-${Math.max(...pages)}` : "album pages";
+        return `<section class="album-spread">
+          <div class="album-spread-head">
+            <div>
+              <div class="album-spread-kicker">${escapeHtml(range)}</div>
+              <div class="album-spread-title">${escapeHtml(title)}</div>
+            </div>
+            <div class="album-spread-meta">${have}/${total}</div>
+          </div>
+          <div class="album-grid">${groupTeams.map(team => teamCard(team)).join("")}</div>
+        </section>`;
+      }).join("") || `<div class="empty">No album pages match those filters.</div>`;
+      bindCollectionEvents();
+    }
+
+    function renderMissingWorkspace(teams) {
+      els.grid.className = "missing-board";
+      const allowed = new Set(teams.map(team => team.code));
+      const rows = missingRows(currentUser).filter(row => allowed.has(row.team.code));
+      const byTeam = new Map();
+      rows.forEach(row => {
+        if (!byTeam.has(row.team.code)) byTeam.set(row.team.code, []);
+        byTeam.get(row.team.code).push(row);
+      });
+      els.grid.innerHTML = `<section class="missing-hero">
+        <div>
+          <h2>Missing Desk</h2>
+          <p>${rows.length} stickers are still on ${currentUser}'s chase list across ${byTeam.size} teams.</p>
+        </div>
+        <button class="btn primary" data-copy-missing>Copy Need List</button>
+      </section>` + ([...byTeam.values()].map(teamRows => {
+        const team = teamRows[0].team;
+        return `<section class="missing-team">
+          <div class="missing-team-head">
+            <h3>${escapeHtml(team.name)}</h3>
+            <span class="pill miss">${teamRows.length}</span>
+          </div>
+          <div class="chip-row">${teamRows.map(row => `<button class="missing-chip" data-sticker data-code="${escapeHtml(row.team.code)}" data-number="${row.number}" title="${escapeHtml(row.title)}">${escapeHtml(row.sourceCode)} · ${escapeHtml(row.title)}</button>`).join("")}</div>
+        </section>`;
+      }).join("") || `<div class="empty">No missing stickers in this view.</div>`);
+      els.grid.querySelector("[data-copy-missing]")?.addEventListener("click", () => copyText(needText()));
+      els.grid.querySelectorAll("[data-sticker]").forEach(btn => btn.addEventListener("click", () => handleStickerClick(btn.dataset.code, Number(btn.dataset.number))));
+    }
+
+    function renderTradeWorkspace() {
+      els.grid.className = "trade-board";
+      const matches = tradeMatches();
+      const people = USERS.filter(name => name !== currentUser).map(other => {
+        const withPerson = matches.filter(match => match.other === other);
+        return {
+          other,
+          give: withPerson.filter(match => match.direction === "give"),
+          get: withPerson.filter(match => match.direction === "get")
+        };
+      });
+      els.grid.innerHTML = `<section class="trade-hero">
+        <div>
+          <h2>Trade Center</h2>
+          <p>${matches.length} possible swaps found for ${currentUser}. Add more duplicates and missing lists to make this smarter.</p>
+        </div>
+        <button class="btn primary" data-copy-trades>Copy Trade Post</button>
+      </section>
+      <section class="trade-stack">${people.map(person => tradeCard(person)).join("")}</section>`;
+      els.grid.querySelector("[data-copy-trades]")?.addEventListener("click", () => copyText(tradeText()));
+    }
+
+    function tradeCard(person) {
+      const preview = [...person.get.slice(0, 8).map(match => ({ ...match, cls: "get", verb: "Get" })), ...person.give.slice(0, 8).map(match => ({ ...match, cls: "give", verb: "Give" }))];
+      return `<article class="trade-card">
+        <h3>${escapeHtml(person.other)}</h3>
+        <div class="trade-metrics">
+          <div class="trade-metric"><strong>${person.get.length}</strong><span>can get</span></div>
+          <div class="trade-metric"><strong>${person.give.length}</strong><span>can give</span></div>
+        </div>
+        <div class="chip-row">${preview.map(match => `<span class="trade-chip ${match.cls}">${match.verb} ${escapeHtml(sourceStickerCode(match.team, match.number) || match.team.code + match.number)} · ${escapeHtml(stickerTitle(match.team, match.number))}</span>`).join("") || `<div class="empty">No automatic matches yet.</div>`}</div>
+      </article>`;
+    }
+
+    function teamCard(team) {
+      const s = teamSummary(team);
+      const complete = !s.missing && !s.unknown;
+      const visibleNumbers = Array.from({ length: team.total }, (_, i) => i + 1).filter(n => {
+        const st = sticker(team.code, n);
+        if (els.viewFilter.value === "missing") return st.status === "missing";
+        if (els.viewFilter.value === "dupes") return st.dupes > 0;
+        if (els.viewFilter.value === "unknown") return st.status === "unknown";
+        return true;
+      });
+      return `<article class="team ${complete ? "complete" : ""}">
+        <button class="team-head" data-team-open="${team.code}">
+          ${flag(team)}
+          <div><div class="team-title">${team.name}</div><div class="team-sub">${team.codeLabel || team.albumCode || team.code} · Group ${team.group} · page ${team.page}</div></div>
+          <span class="pill ${complete ? "ok" : s.missing ? "miss" : ""}">${s.have}/${team.total}</span>
+        </button>
+        <div class="bar"><i style="width:${Math.round(s.have / team.total * 100)}%"></i></div>
+        <div class="stickers">${visibleNumbers.map(n => stickerButton(team, n, "grid")).join("")}</div>
+      </article>`;
+    }
+
+    function flag(team) {
+      if (!team.flag) return `<div class="flag">${team.code === "CC" ? "CC" : "26"}</div>`;
+      return `<img class="flag" alt="" src="https://flagcdn.com/w80/${team.flag}.png" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'flag',textContent:'${team.code.slice(0,2)}'}))">`;
+    }
+
+    function stickerButton(team, number, context = "grid") {
+      const s = sticker(team.code, number);
+      const trade = mode === "trade" && tradeHitKeys.has(stickerKey(team.code, number));
+      const meta = stickerMeta(team, number);
+      const sourceCode = sourceStickerCode(team, number) || `${team.code}${number}`;
+      const lowerText = context === "modal" ? stickerTitle(team, number) : stars(rarity(team, number));
+      const title = `${sourceCode} · ${stickerDetail(team, number)} · ${s.status}${s.dupes ? " · +" + s.dupes + " duplicate(s)" : ""}`;
+      return `<button class="sticker ${s.status} ${trade ? "trade-hit" : ""} ${meta?.foil ? "foil" : ""}" data-sticker data-code="${escapeHtml(team.code)}" data-number="${number}" title="${escapeHtml(title)}">
+        <span>${escapeHtml(label(team, number))}</span>
+        <small>${escapeHtml(lowerText)}</small>
+        ${s.dupes ? `<span class="dupe">+${s.dupes}</span>` : ""}
+      </button>`;
+    }
+
+    function handleStickerClick(code, number) {
+      const s = sticker(code, number);
+      if (mode === "dupe") {
+        s.dupes = Number(s.dupes || 0) + 1;
+        if (s.status !== "have") s.status = "have";
+        toast(`Duplicate added: ${code} ${number}`);
+      } else if (mode === "trade") {
+        s.dupes = Math.max(0, Number(s.dupes || 0) - 1);
+        toast(s.dupes ? `Duplicate removed: ${code} ${number}` : `No duplicates left for ${code} ${number}`);
+      } else {
+        s.status = s.status === "unknown" ? "have" : s.status === "have" ? "missing" : "unknown";
+      }
+      saveState();
+      render();
+    }
+
+    function openTeamModal(code) {
+      activeTeam = code;
+      renderModalTeam(code);
+      els.teamModal.classList.add("show");
+      els.teamModal.setAttribute("aria-hidden", "false");
+    }
+    function closeTeamModal() {
+      activeTeam = null;
+      els.teamModal.classList.remove("show");
+      els.teamModal.setAttribute("aria-hidden", "true");
+    }
+    function renderModalTeam(code) {
+      const team = TEAMS.find(t => t.code === code);
+      if (!team) return;
+      const s = teamSummary(team);
+      els.modalTitle.textContent = team.name;
+      els.modalSub.textContent = `${team.code} · Group ${team.group} · album page ${team.page} · ${s.have}/${team.total} collected`;
+      els.modalGrid.innerHTML = Array.from({ length: team.total }, (_, i) => stickerButton(team, i + 1, "modal")).join("");
+      els.modalGrid.querySelectorAll("[data-sticker]").forEach(btn => btn.addEventListener("click", () => handleStickerClick(btn.dataset.code, Number(btn.dataset.number))));
+    }
+    function bulkTeam(status) {
+      if (!activeTeam) return;
+      const team = TEAMS.find(t => t.code === activeTeam);
+      for (let i = 1; i <= team.total; i++) sticker(team.code, i).status = status;
+      saveState();
+      render();
+      toast(`${team.name} set to ${status}.`);
+    }
+
+    function renderSidebars() {
+      const needs = missingRows(currentUser);
+      els.needList.innerHTML = needs.slice(0, 80).map(row => `<div class="mini-row"><span><strong>${escapeHtml(row.sourceCode)}</strong></span><span>${escapeHtml(row.title)}</span></div>`).join("") || `<div class="empty">No missing stickers recorded.</div>`;
+      const trades = tradeMatches();
+      els.tradeList.innerHTML = trades.slice(0, 80).map(m => `<div class="mini-row"><span><strong>${m.direction === "give" ? "Give" : "Get"}</strong> ${escapeHtml(sourceStickerCode(m.team, m.number) || m.team.code + m.number)}</span><span>${escapeHtml(m.other)} · ${escapeHtml(stickerTitle(m.team, m.number))}</span></div>`).join("") || `<div class="empty">No trade matches yet. Add duplicates and missing lists for more users.</div>`;
+    }
+
+    function missingRows(user) {
+      const rows = [];
+      TEAMS.forEach(team => {
+        for (let i = 1; i <= team.total; i++) if (sticker(team.code, i, user).status === "missing") {
+          rows.push({ team, number:i, label:label(team, i), sourceCode:sourceStickerCode(team, i) || `${team.code}${i}`, title:stickerTitle(team, i) });
+        }
+      });
+      return rows;
+    }
+
+    function needText(user = currentUser) {
+      const byTeam = new Map();
+      missingRows(user).forEach(row => {
+        if (!byTeam.has(row.team.code)) byTeam.set(row.team.code, []);
+        byTeam.get(row.team.code).push(`${row.sourceCode} (${row.title})`);
+      });
+      if (!byTeam.size) return `${user} has no missing stickers recorded.`;
+      return [`${user} needs:`].concat([...byTeam.entries()].map(([code, nums]) => `${code}: ${nums.join(", ")}`)).join("\n");
+    }
+
+    function tradeText() {
+      const rows = tradeMatches();
+      if (!rows.length) return `${currentUser} has no automatic trade matches yet.`;
+      return [`Trade matches for ${currentUser}:`].concat(rows.map(m => `${m.direction === "give" ? "Give to" : "Get from"} ${m.other}: ${sourceStickerCode(m.team, m.number) || m.team.code + m.number} (${stickerTitle(m.team, m.number)})${m.qty > 1 ? " x" + m.qty : ""}`)).join("\n");
+    }
+
+    function parseQuick(text) {
+      const clean = text.replace(/\n/g, " ").replace(/;/g, " ");
+      const tokens = clean.match(/(?:FWC\s+history|FWC|HIST|CC|[A-Z]{3})\s*[\d,\s]+/gi) || [];
+      const found = [];
+      tokens.forEach(token => {
+        const head = token.match(/^(FWC\s+history|FWC|HIST|CC|[A-Z]{3})/i)?.[1].toUpperCase();
+        const nums = token.replace(/^(FWC\s+history|FWC|HIST|CC|[A-Z]{3})/i, "").match(/\d+/g)?.map(Number) || [];
+        if (head === "FWC") {
+          nums.forEach(number => {
+            const code = number >= 9 ? "FWC_HISTORY" : "FWC_SPECIAL";
+            const team = TEAMS.find(t => t.code === code);
+            if (team && number >= 1 && number <= team.total) found.push({ code: team.code, number });
+          });
+          return;
+        }
+        let code = head === "FWC HISTORY" || head === "HIST" ? "FWC_HISTORY" : head;
+        const team = TEAMS.find(t => t.code === code || t.albumCode === code);
+        if (team) nums.filter(n => n >= 1 && n <= team.total).forEach(number => found.push({ code: team.code, number }));
+      });
+      return found;
+    }
+
+    function quickApply(action) {
+      const items = parseQuick($("quickInput").value);
+      if (!items.length) return toast("No sticker codes found.");
+      items.forEach(({ code, number }) => {
+        const s = sticker(code, number);
+        if (action === "dupe") {
+          s.dupes = Number(s.dupes || 0) + 1;
+          s.status = "have";
+        } else {
+          s.status = action;
+        }
+      });
+      $("quickInput").value = "";
+      saveState();
+      render();
+      toast(`${items.length} sticker updates applied.`);
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("Copied to clipboard.");
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        toast("Copied to clipboard.");
+      }
+    }
+
+    function exportExcel() {
+      const summaryRows = USERS.map(user => {
+        const s = stats(user);
+        return { Collector:user, Have:s.have, Missing:s.missing, Unknown:s.unknown, Duplicates:s.dupes, CompleteTeams:s.completeTeams, PercentComplete:s.pct, LastUpdated:state.users[user].updatedAt || "" };
+      });
+      const detailRows = [];
+      USERS.forEach(user => TEAMS.forEach(team => {
+        for (let i = 1; i <= team.total; i++) {
+          const s = sticker(team.code, i, user);
+          const meta = stickerMeta(team, i);
+          detailRows.push({ Collector:user, Group:team.group, Team:team.name, Code:team.code, SourceCode:sourceStickerCode(team, i) || "", Sticker:label(team, i), ChecklistTitle:meta?.title || "", ChecklistCountry:meta?.country || "", StickerType:meta?.type || "", Number:i, Status:s.status, Duplicates:s.dupes || 0, AlbumPage:team.page, Rarity:rarity(team, i), ChecklistSource:CHECKLIST.sourceUrl || "" });
+        }
+      }));
+      const missingRowsOut = USERS.flatMap(user => missingRows(user).map(row => ({ Collector:user, Group:row.team.group, Team:row.team.name, Code:row.team.code, SourceCode:row.sourceCode, Sticker:row.label, ChecklistTitle:row.title, Number:row.number, AlbumPage:row.team.page, ChecklistSource:CHECKLIST.sourceUrl || "" })));
+      const tradeRows = USERS.flatMap(user => tradeMatches(user).map(m => ({ Collector:user, Action:m.direction === "give" ? "Give" : "Get", With:m.other, Code:m.team.code, SourceCode:sourceStickerCode(m.team, m.number) || "", Team:m.team.name, Sticker:label(m.team, m.number), ChecklistTitle:stickerTitle(m.team, m.number), Quantity:m.qty })));
+      if (!window.XLSX) {
+        exportSpreadsheetXml({ Summary: summaryRows, Missing: missingRowsOut, Trades: tradeRows, "All Stickers": detailRows });
+        toast("Excel export generated.");
+        return;
+      }
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryRows), "Summary");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(missingRowsOut), "Missing");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(tradeRows), "Trades");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(detailRows), "All Stickers");
+      XLSX.writeFile(wb, `Panini_WC2026_Tracker_${new Date().toISOString().slice(0,10)}.xlsx`);
+      toast("Excel export generated.");
+    }
+
+    function exportSpreadsheetXml(sheets) {
+      const xmlEscape = value => String(value ?? "").replace(/[<>&'"]/g, ch => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", "'":"&apos;", '"':"&quot;" }[ch]));
+      const sheetXml = Object.entries(sheets).map(([name, rows]) => {
+        const headers = Array.from(rows.reduce((set, row) => {
+          Object.keys(row).forEach(key => set.add(key));
+          return set;
+        }, new Set()));
+        const headerRow = `<Row>${headers.map(h => `<Cell><Data ss:Type="String">${xmlEscape(h)}</Data></Cell>`).join("")}</Row>`;
+        const bodyRows = rows.map(row => `<Row>${headers.map(h => {
+          const value = row[h];
+          const type = typeof value === "number" ? "Number" : "String";
+          return `<Cell><Data ss:Type="${type}">${xmlEscape(value)}</Data></Cell>`;
+        }).join("")}</Row>`).join("");
+        return `<Worksheet ss:Name="${xmlEscape(name).slice(0,31)}"><Table>${headerRow}${bodyRows}</Table></Worksheet>`;
+      }).join("");
+      const xml = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Font ss:FontName="Aptos" ss:Size="11"/></Style></Styles>${sheetXml}</Workbook>`;
+      downloadBlob(xml, `Panini_WC2026_Tracker_${new Date().toISOString().slice(0,10)}.xls`, "application/vnd.ms-excel");
+    }
+
+    function downloadBlob(content, filename, type) {
+      const blob = content instanceof Blob ? content : new Blob([content], { type });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function backupJson() {
+      downloadBlob(JSON.stringify(state, null, 2), `panini-wc2026-backup-${new Date().toISOString().slice(0,10)}.json`, "application/json");
+    }
+
+    function restoreJson(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const restored = JSON.parse(reader.result);
+          if (!restored.users) throw new Error("Invalid backup");
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
+          state = loadState();
+          currentUser = state.currentUser || "Claus";
+          els.userSelect.value = currentUser;
+          render();
+          toast("Backup restored.");
+        } catch {
+          toast("That backup file could not be restored.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    function openPackModal() {
+      $("packModal").classList.add("show");
+      $("packModal").setAttribute("aria-hidden", "false");
+      $("packGrid").innerHTML = `<div class="empty">Ready to open.</div>`;
+    }
+    function closePackModal() {
+      $("packModal").classList.remove("show");
+      $("packModal").setAttribute("aria-hidden", "true");
+    }
+    function openPack() {
+      const pulls = Array.from({ length: 5 }, () => stickerPool[Math.floor(Math.random() * stickerPool.length)]);
+      userData().packs = Number(userData().packs || 0) + 1;
+      pulls.forEach(p => {
+        const s = sticker(p.code, p.number);
+        if (s.status === "have") s.dupes = Number(s.dupes || 0) + 1;
+        else s.status = "have";
+      });
+      $("packGrid").innerHTML = pulls.map(p => {
+        const team = TEAMS.find(t => t.code === p.code);
+        const s = sticker(p.code, p.number);
+        return `<button class="sticker have" type="button" title="${escapeHtml(stickerDetail(team, p.number))}"><span>${escapeHtml(sourceStickerCode(team, p.number) || team.code + p.number)}</span><small>${escapeHtml(s.dupes ? "dupe +" + s.dupes + " · " + stickerTitle(team, p.number) : "new · " + stickerTitle(team, p.number))}</small></button>`;
+      }).join("");
+      saveState();
+      render();
+      toast("Pack opened.");
+    }
+
+    function resetCurrentUser() {
+      if (!confirm(`Reset ${currentUser}'s tracker?`)) return;
+      state.users[currentUser] = makeUser(currentUser === "Claus");
+      saveState();
+      render();
+      toast(`${currentUser} reset.`);
+    }
+    function factoryReset() {
+      if (!confirm("Reset all collectors and remove saved progress?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state = defaultState();
+      currentUser = "Claus";
+      els.userSelect.value = currentUser;
+      render();
+      toast("Tracker reset.");
+    }
+
+    function toast(message) {
+      const node = document.createElement("div");
+      node.className = "toast-item";
+      node.textContent = message;
+      $("toast").appendChild(node);
+      setTimeout(() => node.remove(), 3000);
+    }
+
+    initControls();
+    render();
+  </script>
+</body>
+</html>
