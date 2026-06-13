@@ -1397,16 +1397,15 @@
       { code:"FWC_HISTORY", albumCode:"FWC", name:"World Cup History", group:"Special", flag:null, total:20, page:108 },
       { code:"CC", albumCode:"CC", name:"Coca-Cola", group:"Special", flag:null, total:12, page:112 }
     ];
+    const CLAUS_MISSING_VERSION = "2026-06-13-claus-list-v3";
     const CLAUS_MISSING = {
-      FWC_SPECIAL:[4], MEX:[6,13,18,19], RSA:[1,2,10,16], KOR:[17], CZE:[2,19],
-      BIH:[5,6,16], QAT:[1,2], SUI:[5,6,16], BRA:[11], MAR:[5,15,19],
-      HAI:[6,14,15], SCO:[2,9,10,20], USA:[15], PAR:[6], AUS:[10], TUR:[19],
-      GER:[9,12,13,15,16,19], CUW:[4,8,14,15], CIV:[2,6], ECU:[12,17],
-      NED:[1], JPN:[5,7,14,20], SWE:[9,12,13], TUN:[10], BEL:[7], EGY:[11],
-      IRN:[9], NZL:[20], ESP:[13], CPV:[5,20], KSA:[1,3], URU:[3], FRA:[2,10],
-      IRQ:[2,7,8,17,18], ARG:[4], ALG:[8,10,19], AUT:[3], JOR:[14],
-      POR:[7,16], UZB:[7], COL:[19], ENG:[11,20], GHA:[5,15,16], PAN:[2],
-      FWC_HISTORY:[16], CC:[1,2,4,5,8,10,12]
+      FWC_SPECIAL:[4], MEX:[6,13,18], RSA:[1,16],
+      BIH:[5,16], QAT:[1], SUI:[5,6], BRA:[11], MAR:[5], SCO:[2,9],
+      PAR:[6], AUS:[10], TUR:[19], GER:[9,12,15,19], CUW:[8,14,15], CIV:[6],
+      JPN:[20], SWE:[9,12,13], TUN:[10], BEL:[7], EGY:[11], IRN:[9],
+      ESP:[13], CPV:[5,20], URU:[3], FRA:[2,10], IRQ:[2,7,17],
+      ARG:[4], COL:[19], ENG:[11,20], PAN:[2],
+      FWC_HISTORY:[16], CC:[1,2,4,5,8,10]
     };
 
     const totalStickers = TEAMS.reduce((sum, team) => sum + team.total, 0);
@@ -1416,6 +1415,7 @@
     let syncConfig = loadSyncConfig();
     let syncTimer = null;
     let syncBusy = false;
+    let seedMigrationApplied = false;
     let state = loadState();
     let currentUser = state.currentUser || "Claus";
     let mode = "mark";
@@ -1450,7 +1450,7 @@
     function defaultState() {
       const users = {};
       USERS.forEach(name => users[name] = makeUser(name === "Claus"));
-      return { version: 1, currentUser: "Claus", users };
+      return { version: 1, currentUser: "Claus", seedVersions: { Claus: CLAUS_MISSING_VERSION }, users };
     }
 
     function getDeviceId() {
@@ -1488,6 +1488,27 @@
       renderSyncStatus();
     }
 
+    function applyClausMissingSeed(targetState) {
+      targetState.seedVersions = targetState.seedVersions || {};
+      if (targetState.seedVersions.Claus === CLAUS_MISSING_VERSION) return targetState;
+      const claus = targetState.users?.Claus;
+      if (!claus?.stickers) return targetState;
+      TEAMS.forEach(team => {
+        const missing = new Set(CLAUS_MISSING[team.code] || []);
+        if (!claus.stickers[team.code]) claus.stickers[team.code] = {};
+        for (let i = 1; i <= team.total; i++) {
+          const item = claus.stickers[team.code][i] || { status: "have", dupes: 0 };
+          item.status = missing.has(i) ? "missing" : "have";
+          item.dupes = Math.max(0, Number(item.dupes || 0));
+          claus.stickers[team.code][i] = item;
+        }
+      });
+      claus.updatedAt = new Date().toISOString();
+      targetState.seedVersions.Claus = CLAUS_MISSING_VERSION;
+      seedMigrationApplied = true;
+      return targetState;
+    }
+
     function normalizeState(parsed) {
       if (!parsed || typeof parsed !== "object" || !parsed.users) return defaultState();
       const normalized = { ...parsed, version: 1, users: { ...parsed.users } };
@@ -1514,7 +1535,7 @@
         if (!user.updatedAt) user.updatedAt = base.updatedAt;
         normalized.users[name] = user;
       });
-      return normalized;
+      return applyClausMissingSeed(normalized);
     }
 
     function loadState() {
@@ -2791,6 +2812,7 @@
 
     initControls();
     render();
+    if (seedMigrationApplied) saveState({ touchUser:false });
     startAutoCloudPull();
   </script>
 </body>
