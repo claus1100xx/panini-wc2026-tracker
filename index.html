@@ -950,6 +950,59 @@
     }
     .bulk { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 18px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--collector-accent) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 28%, transparent);
+      color: color-mix(in srgb, var(--collector-accent) 70%, white);
+      font-size: .62rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .sync-status-card {
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: var(--radius);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 24%, transparent);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 10%, transparent), color-mix(in srgb, var(--collector-surface) 86%, transparent));
+    }
+    .sync-status-card strong {
+      font-family: Georgia, Times New Roman, serif;
+      font-size: 1.2rem;
+      color: var(--ink);
+    }
+    .sync-status-card span,
+    .sync-note {
+      color: var(--muted);
+      line-height: 1.42;
+      font-size: .86rem;
+    }
+    .sync-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .sync-grid .full { grid-column: 1 / -1; }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink);
+      font-weight: 800;
+      min-height: 40px;
+      padding: 8px 0;
+    }
+    .check-row input { width: 18px; height: 18px; accent-color: var(--collector-accent); }
+    .sync-note { margin: 10px 0 0; }
+    .sync-note a { color: color-mix(in srgb, var(--collector-accent) 72%, white); }
+
     .toast {
       position: fixed;
       right: 16px;
@@ -1001,6 +1054,7 @@
       .album-spread-meta { white-space: normal; }
       .album-pages .stickers { grid-template-columns: repeat(4, 1fr); }
       .trade-hero, .missing-hero { grid-template-columns: 1fr; }
+      .sync-grid { grid-template-columns: 1fr; }
       .mobile-dock { display: grid; }
       .toast { bottom: calc(88px + env(safe-area-inset-bottom)); left: 12px; right: 12px; }
       .toast-item { width: 100%; }
@@ -1026,6 +1080,7 @@
           <button class="btn good" id="importMissingBtn" title="Import an Excel or CSV missing list for the selected collector">Import Missing</button>
           <button class="btn blue" id="backupBtn" title="Download a JSON backup">Backup</button>
           <button class="btn" id="restoreBtn" title="Restore from a JSON backup">Restore</button>
+          <button class="btn" id="syncBtn" title="Sync this tracker across devices">Cloud Sync <span class="sync-badge" id="syncBadge">Local</span></button>
           <input id="restoreInput" type="file" accept="application/json" class="hidden">
           <input id="importMissingInput" type="file" accept=".xlsx,.xls,.csv,.tsv,text/csv,text/tab-separated-values" class="hidden">
         </div>
@@ -1185,6 +1240,47 @@
     </div>
   </div>
 
+  <div class="modal" id="syncModal" aria-hidden="true">
+    <div class="dialog sync-dialog">
+      <div class="dialog-head">
+        <div>
+          <h2>Cloud Sync</h2>
+          <div class="tagline">Shared state for every device.</div>
+        </div>
+        <button class="btn icon" id="closeSync" aria-label="Close">X</button>
+      </div>
+      <div class="sync-status-card">
+        <strong id="syncState">Local only</strong>
+        <span id="syncLast">Connect a private GitHub Gist to share progress.</span>
+      </div>
+      <div class="sync-grid">
+        <label class="full">
+          <span class="label">GitHub token</span>
+          <input class="input" id="syncToken" type="password" autocomplete="off" placeholder="Token with gist access">
+        </label>
+        <label>
+          <span class="label">Gist ID</span>
+          <input class="input" id="syncGistId" type="text" autocomplete="off" placeholder="Create one or paste an existing ID">
+        </label>
+        <label class="check-row">
+          <input id="syncAuto" type="checkbox">
+          <span>Auto sync</span>
+        </label>
+      </div>
+      <div class="sync-note">
+        Use a token limited to Gist access. The token is stored only in this browser, separate from collection backups.
+        <a href="https://github.com/settings/tokens/new?scopes=gist&description=Panini%20WC2026%20Sync" target="_blank" rel="noreferrer">Create token</a>.
+      </div>
+      <div class="actions" style="margin-top:12px">
+        <button class="btn primary" id="syncCreateBtn">Create Cloud File</button>
+        <button class="btn" id="syncSaveBtn">Save Settings</button>
+        <button class="btn good" id="syncPullBtn">Pull</button>
+        <button class="btn blue" id="syncPushBtn">Push</button>
+        <button class="btn bad" id="syncDisconnectBtn">Disconnect</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <script src="checklist-insider-data.js"></script>
@@ -1217,6 +1313,10 @@
       }
     };
     const STORAGE_KEY = "panini-wc2026-collection-hub-v1";
+    const SYNC_STORAGE_KEY = "panini-wc2026-cloud-sync-v1";
+    const DEVICE_STORAGE_KEY = "panini-wc2026-device-id-v1";
+    const SYNC_FILE = "panini-wc2026-sync.json";
+    const GITHUB_API = "https://api.github.com";
     const CHECKLIST = window.CHECKLIST_INSIDER || { source: "Checklist Insider", sourceUrl: "", stickers: {} };
     const STICKER_META = CHECKLIST.stickers || {};
     const SPECIAL_ALIASES = { FWC_SPECIAL: "FWC", FWC_HISTORY: "HIST", CC: "CC" };
@@ -1288,6 +1388,10 @@
     const totalStickers = TEAMS.reduce((sum, team) => sum + team.total, 0);
     const stickerPool = TEAMS.flatMap(team => Array.from({ length: team.total }, (_, i) => ({ code: team.code, number: i + 1 })));
     const GROUP_ORDER = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "Special"];
+    const DEVICE_ID = getDeviceId();
+    let syncConfig = loadSyncConfig();
+    let syncTimer = null;
+    let syncBusy = false;
     let state = loadState();
     let currentUser = state.currentUser || "Claus";
     let mode = "mark";
@@ -1300,7 +1404,9 @@
       userSelect: $("userSelect"), groupFilter: $("groupFilter"), viewFilter: $("viewFilter"), sortFilter: $("sortFilter"),
       searchInput: $("searchInput"), grid: $("collectionGrid"), needList: $("needList"), tradeList: $("tradeList"),
       teamModal: $("teamModal"), modalTitle: $("modalTitle"), modalSub: $("modalSub"), modalGrid: $("modalGrid"),
-      collectorIdentity: $("collectorIdentity"), progressWall: $("progressWall"), importMissingInput: $("importMissingInput")
+      collectorIdentity: $("collectorIdentity"), progressWall: $("progressWall"), importMissingInput: $("importMissingInput"),
+      syncBadge: $("syncBadge"), syncModal: $("syncModal"), syncState: $("syncState"), syncLast: $("syncLast"),
+      syncToken: $("syncToken"), syncGistId: $("syncGistId"), syncAuto: $("syncAuto")
     };
 
     function makeUser(seedClaus) {
@@ -1321,33 +1427,84 @@
       return { version: 1, currentUser: "Claus", users };
     }
 
+    function getDeviceId() {
+      let id = localStorage.getItem(DEVICE_STORAGE_KEY);
+      if (!id) {
+        id = `device-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+        localStorage.setItem(DEVICE_STORAGE_KEY, id);
+      }
+      return id;
+    }
+
+    function loadSyncConfig() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(SYNC_STORAGE_KEY) || "{}");
+        return {
+          token: parsed.token || "",
+          gistId: parsed.gistId || "",
+          auto: parsed.auto !== false,
+          lastPulledAt: parsed.lastPulledAt || "",
+          lastPushedAt: parsed.lastPushedAt || "",
+          lastStatus: parsed.lastStatus || ""
+        };
+      } catch {
+        return { token: "", gistId: "", auto: true, lastPulledAt: "", lastPushedAt: "", lastStatus: "" };
+      }
+    }
+
+    function saveSyncConfig() {
+      localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify(syncConfig));
+      renderSyncStatus();
+    }
+
+    function normalizeState(parsed) {
+      if (!parsed || typeof parsed !== "object" || !parsed.users) return defaultState();
+      const normalized = { ...parsed, version: 1, users: { ...parsed.users } };
+      if (!USERS.includes(normalized.currentUser)) normalized.currentUser = "Claus";
+      USERS.forEach(name => {
+        const base = makeUser(name === "Claus");
+        const incoming = normalized.users[name] || {};
+        const user = {
+          ...base,
+          ...incoming,
+          stickers: incoming.stickers || {}
+        };
+        TEAMS.forEach(team => {
+          if (!user.stickers[team.code]) user.stickers[team.code] = {};
+          for (let i = 1; i <= team.total; i++) {
+            const fallback = base.stickers[team.code][i];
+            const item = user.stickers[team.code][i] || fallback;
+            user.stickers[team.code][i] = {
+              status: ["have", "missing", "unknown"].includes(item.status) ? item.status : fallback.status,
+              dupes: Math.max(0, Number(item.dupes || 0))
+            };
+          }
+        });
+        if (!user.updatedAt) user.updatedAt = base.updatedAt;
+        normalized.users[name] = user;
+      });
+      return normalized;
+    }
+
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return defaultState();
         const parsed = JSON.parse(raw);
-        if (!parsed.users) return defaultState();
-        USERS.forEach(name => {
-          if (!parsed.users[name]) parsed.users[name] = makeUser(name === "Claus");
-          TEAMS.forEach(team => {
-            if (!parsed.users[name].stickers[team.code]) parsed.users[name].stickers[team.code] = {};
-            for (let i = 1; i <= team.total; i++) {
-              if (!parsed.users[name].stickers[team.code][i]) {
-                parsed.users[name].stickers[team.code][i] = { status: name === "Claus" && CLAUS_MISSING[team.code]?.includes(i) ? "missing" : name === "Claus" ? "have" : "unknown", dupes: 0 };
-              }
-            }
-          });
-        });
-        return parsed;
+        return normalizeState(parsed);
       } catch {
         return defaultState();
       }
     }
 
-    function saveState() {
+    function saveState(options = {}) {
+      const { touchUser = true, skipSync = false } = options;
       state.currentUser = currentUser;
-      state.users[currentUser].updatedAt = new Date().toISOString();
+      state.updatedAt = new Date().toISOString();
+      state.deviceId = DEVICE_ID;
+      if (touchUser) state.users[currentUser].updatedAt = state.updatedAt;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (!skipSync) scheduleCloudPush();
     }
 
     function userData(user = currentUser) { return state.users[user]; }
@@ -1458,7 +1615,7 @@
         document.querySelector("#quickInput").scrollIntoView({ behavior: "smooth", block: "center" });
         setTimeout(() => document.querySelector("#quickInput").focus(), 260);
       });
-      els.userSelect.addEventListener("change", () => { currentUser = els.userSelect.value; saveState(); render(); });
+      els.userSelect.addEventListener("change", () => { currentUser = els.userSelect.value; saveState({ touchUser:false, skipSync:true }); render(); });
       [els.groupFilter, els.viewFilter, els.sortFilter, els.searchInput].forEach(el => el.addEventListener("input", render));
       $("closeModal").addEventListener("click", closeTeamModal);
       $("teamModal").addEventListener("click", e => { if (e.target === $("teamModal")) closeTeamModal(); });
@@ -1476,6 +1633,14 @@
       $("backupBtn").addEventListener("click", backupJson);
       $("restoreBtn").addEventListener("click", () => $("restoreInput").click());
       $("restoreInput").addEventListener("change", restoreJson);
+      $("syncBtn").addEventListener("click", openSyncModal);
+      $("closeSync").addEventListener("click", closeSyncModal);
+      $("syncModal").addEventListener("click", e => { if (e.target === $("syncModal")) closeSyncModal(); });
+      $("syncSaveBtn").addEventListener("click", saveSyncSettingsFromForm);
+      $("syncCreateBtn").addEventListener("click", createCloudFile);
+      $("syncPullBtn").addEventListener("click", () => pullCloud());
+      $("syncPushBtn").addEventListener("click", () => pushCloud());
+      $("syncDisconnectBtn").addEventListener("click", disconnectCloudSync);
       $("packBtn").addEventListener("click", openPackModal);
       $("closePack").addEventListener("click", closePackModal);
       $("packModal").addEventListener("click", e => { if (e.target === $("packModal")) closePackModal(); });
@@ -1492,6 +1657,7 @@
 
     function render() {
       renderStats();
+      renderSyncStatus();
       renderProgressWall();
       tradeHitKeys = mode === "trade" || workspace === "trades"
         ? new Set(tradeMatches().map(match => stickerKey(match.team.code, match.number)))
@@ -2197,9 +2363,9 @@
         try {
           const restored = JSON.parse(reader.result);
           if (!restored.users) throw new Error("Invalid backup");
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
-          state = loadState();
+          state = normalizeState(restored);
           currentUser = state.currentUser || "Claus";
+          saveState({ touchUser:false });
           els.userSelect.value = currentUser;
           render();
           toast("Backup restored.");
@@ -2209,6 +2375,244 @@
       };
       reader.readAsText(file);
       event.target.value = "";
+    }
+
+    function hasCloudConfig() {
+      return Boolean(syncConfig.token && syncConfig.gistId);
+    }
+
+    function syncStamp(value) {
+      if (!value) return "Never synced";
+      try {
+        return new Intl.DateTimeFormat([], { dateStyle:"medium", timeStyle:"short" }).format(new Date(value));
+      } catch {
+        return value;
+      }
+    }
+
+    function renderSyncStatus() {
+      const connected = hasCloudConfig();
+      if (els.syncBadge) els.syncBadge.textContent = connected ? (syncConfig.auto ? "Auto" : "Cloud") : "Local";
+      if (!els.syncState || !els.syncLast) return;
+      els.syncState.textContent = connected ? (syncConfig.auto ? "Cloud sync on" : "Cloud sync ready") : "Local only";
+      const last = syncConfig.lastStatus || (connected ? `Pulled ${syncStamp(syncConfig.lastPulledAt)} · Pushed ${syncStamp(syncConfig.lastPushedAt)}` : "Connect a private GitHub Gist to share progress.");
+      els.syncLast.textContent = last;
+    }
+
+    function openSyncModal() {
+      els.syncToken.value = syncConfig.token || "";
+      els.syncGistId.value = syncConfig.gistId || "";
+      els.syncAuto.checked = syncConfig.auto !== false;
+      renderSyncStatus();
+      els.syncModal.classList.add("show");
+      els.syncModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeSyncModal() {
+      els.syncModal.classList.remove("show");
+      els.syncModal.setAttribute("aria-hidden", "true");
+    }
+
+    function readSyncSettingsFromForm() {
+      if (!els.syncModal.classList.contains("show")) return;
+      syncConfig.token = els.syncToken.value.trim();
+      syncConfig.gistId = els.syncGistId.value.trim();
+      syncConfig.auto = els.syncAuto.checked;
+    }
+
+    function saveSyncSettingsFromForm() {
+      readSyncSettingsFromForm();
+      syncConfig.lastStatus = hasCloudConfig() ? "Cloud settings saved." : "Cloud settings saved. Add token and Gist ID to connect.";
+      saveSyncConfig();
+      toast(syncConfig.lastStatus);
+    }
+
+    function setSyncBusy(isBusy, message = "") {
+      syncBusy = isBusy;
+      ["syncCreateBtn", "syncSaveBtn", "syncPullBtn", "syncPushBtn", "syncDisconnectBtn"].forEach(id => {
+        const btn = $(id);
+        if (btn) btn.disabled = isBusy;
+      });
+      if (message) {
+        syncConfig.lastStatus = message;
+        saveSyncConfig();
+      }
+    }
+
+    function syncHeaders(extra = {}) {
+      return {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${syncConfig.token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...extra
+      };
+    }
+
+    async function githubRequest(path, options = {}) {
+      if (!syncConfig.token) throw new Error("Add a GitHub token first.");
+      const res = await fetch(`${GITHUB_API}${path}`, {
+        ...options,
+        headers: syncHeaders(options.headers || {})
+      });
+      if (!res.ok) {
+        let detail = "";
+        try {
+          const body = await res.json();
+          detail = body.message ? ` ${body.message}` : "";
+        } catch {}
+        throw new Error(`GitHub returned ${res.status}.${detail}`);
+      }
+      return res.status === 204 ? null : res.json();
+    }
+
+    function cloudPayload() {
+      return {
+        app: "panini-wc2026-tracker",
+        schema: 1,
+        savedAt: new Date().toISOString(),
+        deviceId: DEVICE_ID,
+        state: normalizeState(JSON.parse(JSON.stringify(state)))
+      };
+    }
+
+    async function createCloudFile() {
+      readSyncSettingsFromForm();
+      if (!syncConfig.token) return toast("Add a GitHub token first.");
+      try {
+        setSyncBusy(true, "Creating cloud file...");
+        const gist = await githubRequest("/gists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            description: "Panini WC2026 tracker sync",
+            public: false,
+            files: { [SYNC_FILE]: { content: JSON.stringify(cloudPayload(), null, 2) } }
+          })
+        });
+        syncConfig.gistId = gist.id;
+        syncConfig.lastPushedAt = new Date().toISOString();
+        syncConfig.lastStatus = "Cloud file created.";
+        saveSyncConfig();
+        els.syncGistId.value = syncConfig.gistId;
+        toast("Cloud sync file created.");
+      } catch (error) {
+        syncConfig.lastStatus = `Sync error: ${error.message}`;
+        saveSyncConfig();
+        toast(syncConfig.lastStatus);
+      } finally {
+        setSyncBusy(false);
+      }
+    }
+
+    async function readCloudPayload() {
+      if (!syncConfig.gistId) throw new Error("Add a Gist ID first.");
+      const gist = await githubRequest(`/gists/${encodeURIComponent(syncConfig.gistId)}`);
+      const file = gist.files?.[SYNC_FILE] || Object.values(gist.files || {}).find(item => item.filename?.endsWith(".json"));
+      if (!file) throw new Error(`No ${SYNC_FILE} file found in that Gist.`);
+      let content = file.content;
+      if (file.truncated && file.raw_url) {
+        const raw = await fetch(file.raw_url, { headers: syncHeaders({ Accept: "application/json" }) });
+        if (!raw.ok) throw new Error(`Could not read raw Gist file (${raw.status}).`);
+        content = await raw.text();
+      }
+      return JSON.parse(content);
+    }
+
+    function mergeRemoteState(remoteState) {
+      const localUser = currentUser;
+      const remote = normalizeState(remoteState);
+      const merged = normalizeState(JSON.parse(JSON.stringify(state)));
+      const pulled = [];
+      const localAhead = [];
+      USERS.forEach(name => {
+        const localTime = Date.parse(merged.users[name]?.updatedAt || "") || 0;
+        const remoteTime = Date.parse(remote.users[name]?.updatedAt || "") || 0;
+        if (remoteTime > localTime) {
+          merged.users[name] = remote.users[name];
+          pulled.push(name);
+        } else if (localTime > remoteTime) {
+          localAhead.push(name);
+        }
+      });
+      merged.currentUser = localUser;
+      return { merged, pulled, localAhead };
+    }
+
+    async function pullCloud(options = {}) {
+      const { silent = false } = options;
+      readSyncSettingsFromForm();
+      if (!hasCloudConfig()) return toast("Add a GitHub token and Gist ID first.");
+      try {
+        setSyncBusy(true, "Pulling cloud changes...");
+        const payload = await readCloudPayload();
+        const remoteState = payload.state || payload;
+        const { merged, pulled, localAhead } = mergeRemoteState(remoteState);
+        state = merged;
+        saveState({ touchUser:false, skipSync:true });
+        els.userSelect.value = currentUser;
+        render();
+        syncConfig.lastPulledAt = new Date().toISOString();
+        syncConfig.lastStatus = pulled.length ? `Pulled updates for ${pulled.join(", ")}.` : "Cloud already matched this device.";
+        saveSyncConfig();
+        if (!silent) toast(syncConfig.lastStatus);
+        if (localAhead.length && syncConfig.auto) await pushCloud({ silent:true });
+      } catch (error) {
+        syncConfig.lastStatus = `Sync error: ${error.message}`;
+        saveSyncConfig();
+        if (!silent) toast(syncConfig.lastStatus);
+      } finally {
+        setSyncBusy(false);
+      }
+    }
+
+    async function pushCloud(options = {}) {
+      const { silent = false } = options;
+      readSyncSettingsFromForm();
+      if (!hasCloudConfig()) {
+        if (!silent) toast("Add a GitHub token and Gist ID first.");
+        return;
+      }
+      try {
+        setSyncBusy(true, silent ? "Syncing..." : "Pushing to cloud...");
+        await githubRequest(`/gists/${encodeURIComponent(syncConfig.gistId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ files: { [SYNC_FILE]: { content: JSON.stringify(cloudPayload(), null, 2) } } })
+        });
+        syncConfig.lastPushedAt = new Date().toISOString();
+        syncConfig.lastStatus = "Cloud sync complete.";
+        saveSyncConfig();
+        if (!silent) toast("Pushed to cloud.");
+      } catch (error) {
+        syncConfig.lastStatus = `Sync error: ${error.message}`;
+        saveSyncConfig();
+        if (!silent) toast(syncConfig.lastStatus);
+      } finally {
+        setSyncBusy(false);
+      }
+    }
+
+    function scheduleCloudPush() {
+      if (!hasCloudConfig() || !syncConfig.auto) return;
+      clearTimeout(syncTimer);
+      syncTimer = setTimeout(() => {
+        pushCloud({ silent:true }).catch(() => {});
+      }, 1200);
+    }
+
+    function disconnectCloudSync() {
+      syncConfig = { token: "", gistId: "", auto: true, lastPulledAt: "", lastPushedAt: "", lastStatus: "Cloud sync disconnected on this device." };
+      localStorage.removeItem(SYNC_STORAGE_KEY);
+      els.syncToken.value = "";
+      els.syncGistId.value = "";
+      els.syncAuto.checked = true;
+      renderSyncStatus();
+      toast("Cloud sync disconnected on this device.");
+    }
+
+    function startAutoCloudPull() {
+      if (!hasCloudConfig() || !syncConfig.auto) return;
+      setTimeout(() => pullCloud({ silent:true }).catch(() => {}), 700);
     }
 
     function openPackModal() {
@@ -2265,6 +2669,7 @@
 
     initControls();
     render();
+    startAutoCloudPull();
   </script>
 </body>
 </html>
