@@ -18,6 +18,14 @@
       --lime: #6fb18b;
       --red: #b14a3f;
       --blue: #6f9fb1;
+      --collector-accent: #d8c393;
+      --collector-accent-2: #7fa48f;
+      --collector-accent-3: #6f9fb1;
+      --collector-active-ink: #10120f;
+      --collector-dark: #090b0a;
+      --collector-mid: #121815;
+      --collector-surface: #1c2320;
+      --collector-surface-2: #232c28;
       --orange: #b98759;
       --black: #0b0e0c;
       --shadow: 0 22px 80px rgba(0,0,0,.35);
@@ -30,10 +38,30 @@
       margin: 0;
       min-height: 100vh;
       background:
-        linear-gradient(120deg, rgba(231,187,85,.09), transparent 32%),
-        radial-gradient(circle at 88% 12%, rgba(115,209,124,.14), transparent 26%),
-        linear-gradient(180deg, #0b0e0c 0%, #131816 58%, #0b0e0c 100%);
+        linear-gradient(120deg, color-mix(in srgb, var(--collector-accent) 12%, transparent), transparent 32%),
+        radial-gradient(ellipse at 88% 12%, color-mix(in srgb, var(--collector-accent-2) 16%, transparent), transparent 30%),
+        linear-gradient(180deg, var(--collector-dark) 0%, var(--collector-mid) 58%, var(--collector-dark) 100%);
       color: var(--ink);
+    }
+
+    body,
+    .topbar,
+    .user-panel,
+    .collector-identity,
+    .score,
+    .metric,
+    .panel,
+    .team,
+    .toolbar,
+    .workspace-strip,
+    .mobile-dock,
+    .dialog,
+    .toast-item,
+    .btn,
+    .tab,
+    .workspace-tab,
+    .group-tile {
+      transition: background .28s ease, border-color .28s ease, color .28s ease, box-shadow .28s ease;
     }
 
     button, input, select, textarea { font: inherit; }
@@ -65,8 +93,8 @@
       display: grid;
       gap: 10px;
       padding: 12px;
-      background: rgba(28,35,32,.86);
-      border: 1px solid rgba(231,187,85,.26);
+      background: color-mix(in srgb, var(--collector-surface) 88%, transparent);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 28%, transparent);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
@@ -77,8 +105,8 @@
       gap: 10px;
       align-items: center;
       padding: 10px;
-      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent, var(--gold)) 16%, transparent), rgba(255,255,255,.035));
-      border: 1px solid color-mix(in srgb, var(--collector-accent, var(--gold)) 36%, transparent);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 16%, transparent), rgba(255,255,255,.035));
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 36%, transparent);
       border-radius: var(--radius);
     }
     .collector-avatar {
@@ -87,10 +115,10 @@
       display: grid;
       place-items: center;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--collector-accent, var(--gold)), var(--collector-accent-2, #6f9fb1));
-      color: #0c0f0d;
+      background: linear-gradient(135deg, var(--collector-accent), var(--collector-accent-2));
+      color: var(--collector-active-ink);
       font-weight: 1000;
-      box-shadow: 0 12px 24px color-mix(in srgb, var(--collector-accent, var(--gold)) 24%, transparent);
+      box-shadow: 0 12px 24px color-mix(in srgb, var(--collector-accent) 24%, transparent);
     }
     .collector-name {
       font-weight: 1000;
@@ -107,13 +135,16 @@
       width: 100%;
       min-height: 40px;
       color: var(--ink);
-      background: #101512;
+      background: color-mix(in srgb, var(--collector-dark) 78%, black);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       padding: 9px 10px;
       outline: none;
     }
-    .select:focus, .input:focus, .textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(231,187,85,.13); }
+    .select:focus, .input:focus, .textarea:focus {
+      border-color: var(--collector-accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--collector-accent) 20%, transparent);
+    }
     .textarea { resize: vertical; min-height: 86px; }
 
     .actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -121,7 +152,7 @@
       min-height: 38px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: #121714;
+      background: color-mix(in srgb, var(--collector-surface) 74%, black);
       color: var(--ink);
       padding: 8px 12px;
       display: inline-flex;
@@ -131,11 +162,16 @@
       transition: transform .16s ease, border-color .16s ease, background .16s ease;
       white-space: nowrap;
     }
-    .btn:hover { transform: translateY(-1px); border-color: var(--gold); }
-    .btn.primary { background: var(--gold); color: #16120a; border-color: var(--gold); font-weight: 800; }
+    .btn:hover { transform: translateY(-1px); border-color: var(--collector-accent); }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--collector-accent), var(--collector-accent-2));
+      color: var(--collector-active-ink);
+      border-color: color-mix(in srgb, var(--collector-accent) 82%, white);
+      font-weight: 800;
+    }
     .btn.good { border-color: rgba(115,209,124,.6); color: var(--lime); }
     .btn.bad { border-color: rgba(225,94,87,.65); color: var(--red); }
-    .btn.blue { border-color: rgba(103,183,220,.65); color: var(--blue); }
+    .btn.blue { border-color: color-mix(in srgb, var(--collector-accent-3) 65%, transparent); color: var(--collector-accent-3); }
     .btn.icon { width: 38px; padding: 0; }
 
     .dashboard {
@@ -147,7 +183,7 @@
     }
 
     .score {
-      background: rgba(28,35,32,.92);
+      background: color-mix(in srgb, var(--collector-surface) 92%, transparent);
       border: 1px solid rgba(255,255,255,.08);
       border-radius: var(--radius);
       padding: 16px;
@@ -158,7 +194,7 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(231,187,85,.18), transparent 45%);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 22%, transparent), transparent 45%);
       pointer-events: none;
     }
     .score-content { position: relative; display: grid; grid-template-columns: 118px 1fr; gap: 14px; align-items: center; }
@@ -166,16 +202,16 @@
     .ring svg { transform: rotate(-90deg); }
     .ring circle { fill: none; stroke-width: 10; }
     .ring .track { stroke: rgba(255,255,255,.1); }
-    .ring .fill { stroke: var(--gold); stroke-linecap: round; transition: stroke-dashoffset .4s ease; }
+    .ring .fill { stroke: var(--collector-accent); stroke-linecap: round; transition: stroke-dashoffset .4s ease, stroke .28s ease; }
     .ring-text { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
-    .ring-text strong { display: block; font-size: 1.55rem; color: var(--gold); }
+    .ring-text strong { display: block; font-size: 1.55rem; color: var(--collector-accent); }
     .ring-text span { display: block; color: var(--muted); font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; }
     .score h2 { margin: 0 0 7px; font-size: 1.1rem; }
     .score p { margin: 0; color: var(--muted); line-height: 1.4; font-size: .92rem; }
 
     .metrics { display: grid; grid-template-columns: repeat(5, minmax(110px, 1fr)); gap: 10px; }
     .metric {
-      background: rgba(28,35,32,.78);
+      background: color-mix(in srgb, var(--collector-surface) 78%, transparent);
       border: 1px solid rgba(255,255,255,.08);
       border-radius: var(--radius);
       padding: 12px;
@@ -198,8 +234,8 @@
       border: 1px solid rgba(255,255,255,.08);
       border-radius: var(--radius);
       background:
-        linear-gradient(180deg, color-mix(in srgb, var(--collector-accent, var(--gold)) calc(var(--heat, 0) * .28%), transparent), transparent),
-        rgba(28,35,32,.86);
+        linear-gradient(180deg, color-mix(in srgb, var(--collector-accent) calc(var(--heat, 0) * .28%), transparent), transparent),
+        color-mix(in srgb, var(--collector-surface) 86%, transparent);
       color: var(--ink);
       padding: 10px;
       text-align: left;
@@ -211,7 +247,7 @@
     }
     .group-tile:hover {
       transform: translateY(-1px);
-      border-color: color-mix(in srgb, var(--collector-accent, var(--gold)) 48%, rgba(255,255,255,.08));
+      border-color: color-mix(in srgb, var(--collector-accent) 48%, rgba(255,255,255,.08));
     }
     .group-tile:before {
       content: "";
@@ -220,7 +256,7 @@
       right: 0;
       bottom: 0;
       height: 4px;
-      background: linear-gradient(90deg, var(--collector-accent, var(--gold)), var(--collector-accent-2, #6f9fb1));
+      background: linear-gradient(90deg, var(--collector-accent), var(--collector-accent-2));
       transform: scaleX(calc(var(--heat, 0) / 100));
       transform-origin: left;
     }
@@ -235,7 +271,7 @@
       letter-spacing: .08em;
     }
     .group-tile small {
-      color: color-mix(in srgb, var(--collector-accent, var(--gold)) 58%, var(--muted));
+      color: color-mix(in srgb, var(--collector-accent) 58%, var(--muted));
       font-weight: 800;
     }
 
@@ -245,8 +281,8 @@
       gap: 10px;
       align-items: end;
       padding: 12px;
-      background: rgba(20,24,23,.78);
-      border: 1px solid rgba(255,255,255,.08);
+      background: color-mix(in srgb, var(--collector-mid) 78%, transparent);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 14%, rgba(255,255,255,.08));
       border-radius: var(--radius);
       position: sticky;
       top: 0;
@@ -254,7 +290,7 @@
       backdrop-filter: blur(14px);
     }
 
-    .tabs { display: flex; gap: 5px; padding: 4px; background: #101512; border: 1px solid var(--line); border-radius: var(--radius); }
+    .tabs { display: flex; gap: 5px; padding: 4px; background: color-mix(in srgb, var(--collector-dark) 82%, black); border: 1px solid var(--line); border-radius: var(--radius); }
     .tab {
       flex: 1;
       min-height: 34px;
@@ -265,7 +301,10 @@
       padding: 7px 10px;
       font-weight: 700;
     }
-    .tab.active { background: var(--gold); color: #16120a; }
+    .tab.active {
+      background: linear-gradient(135deg, var(--collector-accent), var(--collector-accent-2));
+      color: var(--collector-active-ink);
+    }
 
     .layout {
       display: grid;
@@ -277,7 +316,7 @@
     .collection { min-width: 0; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 10px; }
     .team {
-      background: rgba(28,35,32,.9);
+      background: color-mix(in srgb, var(--collector-surface) 90%, transparent);
       border: 1px solid rgba(255,255,255,.08);
       border-radius: var(--radius);
       overflow: hidden;
@@ -291,7 +330,7 @@
       gap: 10px;
       align-items: center;
       border: 0;
-      background: rgba(255,255,255,.025);
+      background: color-mix(in srgb, var(--collector-accent) 5%, transparent);
       color: var(--ink);
       text-align: left;
       padding: 10px;
@@ -302,10 +341,10 @@
       border-radius: 50%;
       border: 1px solid rgba(255,255,255,.14);
       object-fit: cover;
-      background: #121714;
+      background: color-mix(in srgb, var(--collector-dark) 70%, black);
       display: grid;
       place-items: center;
-      color: var(--gold);
+      color: var(--collector-accent);
       font-weight: 900;
       overflow: hidden;
     }
@@ -322,14 +361,14 @@
     .pill.ok { color: var(--lime); border-color: rgba(115,209,124,.4); }
     .pill.miss { color: var(--red); border-color: rgba(225,94,87,.45); }
     .bar { height: 4px; background: rgba(255,255,255,.08); overflow: hidden; }
-    .bar i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--lime), var(--gold)); transition: width .25s ease; }
+    .bar i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--collector-accent-2), var(--collector-accent)); transition: width .25s ease, background .28s ease; }
     .stickers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; padding: 10px; }
     .sticker {
       min-width: 0;
       aspect-ratio: 1;
       border: 1px solid rgba(255,255,255,.1);
       border-radius: 7px;
-      background: #121714;
+      background: color-mix(in srgb, var(--collector-dark) 74%, black);
       color: var(--muted);
       display: grid;
       place-items: center;
@@ -338,11 +377,11 @@
       transition: transform .12s ease, border-color .12s ease, background .12s ease;
       user-select: none;
     }
-    .sticker:hover { transform: translateY(-1px); border-color: var(--gold); }
+    .sticker:hover { transform: translateY(-1px); border-color: var(--collector-accent); }
     .sticker.have { background: rgba(115,209,124,.16); color: #b8ffc0; border-color: rgba(115,209,124,.34); }
     .sticker.missing { background: rgba(225,94,87,.18); color: #ffc2bd; border-color: rgba(225,94,87,.38); }
     .sticker.unknown { background: rgba(255,255,255,.04); }
-    .sticker.trade-hit { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .sticker.trade-hit { outline: 2px solid var(--collector-accent); outline-offset: 2px; }
     .sticker .dupe {
       position: absolute;
       top: -5px;
@@ -352,8 +391,8 @@
       display: grid;
       place-items: center;
       border-radius: 50%;
-      background: var(--gold);
-      color: #15100a;
+      background: linear-gradient(135deg, var(--collector-accent), var(--collector-accent-2));
+      color: var(--collector-active-ink);
       font-size: .62rem;
       border: 1px solid #15100a;
     }
@@ -371,7 +410,7 @@
 
     .side { display: grid; gap: 10px; align-content: start; position: sticky; top: 86px; }
     .panel {
-      background: rgba(28,35,32,.9);
+      background: color-mix(in srgb, var(--collector-surface) 90%, transparent);
       border: 1px solid rgba(255,255,255,.08);
       border-radius: var(--radius);
       padding: 12px;
@@ -395,7 +434,7 @@
     .mini-group {
       margin-top: 8px;
       padding: 7px 3px 3px;
-      color: var(--gold);
+      color: var(--collector-accent);
       font-size: .68rem;
       font-weight: 900;
       text-transform: uppercase;
@@ -409,8 +448,8 @@
       gap: 8px;
       margin: 14px 0 0;
       padding: 6px;
-      background: rgba(8, 11, 9, .64);
-      border: 1px solid rgba(255,255,255,.1);
+      background: color-mix(in srgb, var(--collector-dark) 72%, transparent);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 18%, rgba(255,255,255,.08));
       border-radius: var(--radius);
       position: sticky;
       top: 66px;
@@ -427,9 +466,9 @@
       letter-spacing: 0;
     }
     .workspace-tab.active {
-      background: linear-gradient(135deg, var(--gold), #fff2a6);
-      color: #14100a;
-      box-shadow: 0 10px 28px rgba(231,187,85,.2);
+      background: linear-gradient(135deg, var(--collector-accent), var(--collector-accent-2));
+      color: var(--collector-active-ink);
+      box-shadow: 0 10px 28px color-mix(in srgb, var(--collector-accent) 24%, transparent);
     }
 
     .album-pages {
@@ -442,7 +481,7 @@
         repeating-linear-gradient(0deg, rgba(0,0,0,.018), rgba(0,0,0,.018) 1px, transparent 1px, transparent 12px),
         #efe6cf;
       color: #18120c;
-      border: 1px solid rgba(231,187,85,.35);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 35%, transparent);
       border-radius: var(--radius);
       padding: 16px;
       box-shadow: 0 30px 70px rgba(0,0,0,.34);
@@ -531,8 +570,8 @@
       gap: 12px;
     }
     .trade-hero, .missing-hero {
-      background: linear-gradient(135deg, rgba(231,187,85,.18), rgba(103,183,220,.08));
-      border: 1px solid rgba(231,187,85,.28);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 20%, transparent), color-mix(in srgb, var(--collector-accent-3) 10%, transparent));
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 32%, transparent);
       border-radius: var(--radius);
       padding: 16px;
       display: grid;
@@ -583,7 +622,7 @@
       font-size: .78rem;
     }
     .trade-chip.give { border-color: rgba(115,209,124,.35); color: #c8ffd0; }
-    .trade-chip.get { border-color: rgba(103,183,220,.4); color: #bde9ff; }
+    .trade-chip.get { border-color: color-mix(in srgb, var(--collector-accent-3) 46%, transparent); color: color-mix(in srgb, var(--collector-accent-3) 68%, white); }
     .missing-team-head {
       display: flex;
       align-items: center;
@@ -593,7 +632,7 @@
     }
     .missing-group-title {
       margin: 4px 0 0;
-      color: var(--gold);
+      color: var(--collector-accent);
       font-size: .78rem;
       font-weight: 900;
       text-transform: uppercase;
@@ -611,7 +650,7 @@
       gap: 5px;
       padding: 6px;
       background: rgba(12,15,13,.88);
-      border: 1px solid rgba(231,187,85,.28);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 32%, transparent);
       border-radius: 12px;
       box-shadow: 0 18px 50px rgba(0,0,0,.48);
       backdrop-filter: blur(18px);
@@ -626,17 +665,17 @@
       font-size: .76rem;
     }
     .mobile-dock button.active {
-      background: var(--gold);
-      color: #14100a;
+      background: linear-gradient(135deg, var(--collector-accent), var(--collector-accent-2));
+      color: var(--collector-active-ink);
     }
 
     body {
       background:
-        radial-gradient(circle at 74% 12%, rgba(111,159,177,.13), transparent 28%),
-        linear-gradient(115deg, rgba(216,195,147,.09), transparent 26%, rgba(111,177,139,.06) 68%, transparent),
+        radial-gradient(ellipse at 74% 12%, color-mix(in srgb, var(--collector-accent-3) 16%, transparent), transparent 32%),
+        linear-gradient(115deg, color-mix(in srgb, var(--collector-accent) 13%, transparent), transparent 26%, color-mix(in srgb, var(--collector-accent-2) 10%, transparent) 68%, transparent),
         repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0, rgba(255,255,255,.018) 1px, transparent 1px, transparent 84px),
         repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0, rgba(255,255,255,.014) 1px, transparent 1px, transparent 84px),
-        linear-gradient(180deg, #090b0a 0%, #121815 54%, #090b0a 100%);
+        linear-gradient(180deg, var(--collector-dark) 0%, var(--collector-mid) 54%, var(--collector-dark) 100%);
     }
     body:before {
       content: "";
@@ -644,7 +683,7 @@
       inset: 0;
       pointer-events: none;
       background:
-        linear-gradient(90deg, transparent 0 9%, rgba(231,187,85,.07) 9% 9.4%, transparent 9.4% 90.6%, rgba(231,187,85,.07) 90.6% 91%, transparent 91%),
+        linear-gradient(90deg, transparent 0 9%, color-mix(in srgb, var(--collector-accent) 12%, transparent) 9% 9.4%, transparent 9.4% 90.6%, color-mix(in srgb, var(--collector-accent-2) 12%, transparent) 90.6% 91%, transparent 91%),
         linear-gradient(180deg, transparent 0 17%, rgba(255,255,255,.04) 17% 17.3%, transparent 17.3% 82.7%, rgba(255,255,255,.04) 82.7% 83%, transparent 83%);
       mask-image: linear-gradient(180deg, rgba(0,0,0,.8), transparent 88%);
     }
@@ -652,11 +691,11 @@
     .topbar {
       padding: 22px;
       margin-top: 6px;
-      border: 1px solid rgba(231,187,85,.26);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 30%, transparent);
       border-radius: var(--radius);
       background:
-        linear-gradient(135deg, rgba(231,187,85,.16), rgba(28,35,32,.78) 36%, rgba(103,183,220,.11)),
-        rgba(20,24,23,.84);
+        linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 18%, transparent), color-mix(in srgb, var(--collector-surface) 78%, transparent) 36%, color-mix(in srgb, var(--collector-accent-3) 14%, transparent)),
+        color-mix(in srgb, var(--collector-mid) 84%, transparent);
       box-shadow: var(--shadow);
       align-items: center;
       overflow: hidden;
@@ -678,13 +717,13 @@
       max-width: 900px;
       font-size: clamp(1.9rem, 3.1vw, 3.5rem);
       text-wrap: balance;
-      color: #fff7df;
+      color: color-mix(in srgb, var(--ink) 92%, white);
       text-shadow: 0 10px 30px rgba(0,0,0,.32);
     }
-    .tagline { color: #c9c1ae; }
+    .tagline { color: color-mix(in srgb, var(--muted) 82%, var(--collector-accent)); }
     .user-panel {
-      background: rgba(12,15,13,.72);
-      border-color: rgba(255,255,255,.14);
+      background: color-mix(in srgb, var(--collector-dark) 72%, transparent);
+      border-color: color-mix(in srgb, var(--collector-accent) 22%, rgba(255,255,255,.08));
       position: relative;
       z-index: 1;
     }
@@ -703,9 +742,9 @@
       right: 0;
       top: 0;
       height: 3px;
-      background: linear-gradient(90deg, var(--gold), var(--lime), var(--blue));
+      background: linear-gradient(90deg, var(--collector-accent), var(--collector-accent-2), var(--collector-accent-3));
     }
-    .metric strong { font-family: Georgia, Times New Roman, serif; color: #fff7df; }
+    .metric strong { font-family: Georgia, Times New Roman, serif; color: color-mix(in srgb, var(--ink) 92%, white); }
     .workspace-strip { top: 0; }
     .toolbar { top: 62px; }
     .team {
@@ -713,8 +752,8 @@
     }
     .team:hover {
       transform: translateY(-2px);
-      border-color: rgba(231,187,85,.34);
-      box-shadow: 0 24px 70px rgba(0,0,0,.28);
+      border-color: color-mix(in srgb, var(--collector-accent) 42%, rgba(255,255,255,.08));
+      box-shadow: 0 24px 70px rgba(0,0,0,.28), 0 0 0 1px color-mix(in srgb, var(--collector-accent) 10%, transparent);
     }
     .sticker.have:after, .sticker.trade-hit:before {
       content: "";
@@ -737,7 +776,7 @@
       border-radius: inherit;
       pointer-events: none;
       background:
-        linear-gradient(120deg, transparent 10%, rgba(121,214,255,.24) 32%, rgba(255,255,255,.42) 48%, rgba(231,187,85,.22) 64%, transparent 86%);
+        linear-gradient(120deg, transparent 10%, color-mix(in srgb, var(--collector-accent-3) 28%, transparent) 32%, rgba(255,255,255,.42) 48%, color-mix(in srgb, var(--collector-accent) 26%, transparent) 64%, transparent 86%);
       opacity: .42;
       mix-blend-mode: screen;
     }
@@ -751,9 +790,9 @@
       margin-bottom: 12px;
       padding: 7px 11px;
       border-radius: 6px;
-      background: linear-gradient(135deg, rgba(225,211,178,.16), rgba(147,168,152,.1));
-      border: 1px solid rgba(225,211,178,.26);
-      color: #e8dcc4;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 20%, transparent), color-mix(in srgb, var(--collector-accent-2) 12%, transparent));
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 30%, transparent);
+      color: color-mix(in srgb, var(--collector-accent) 72%, white);
       font-size: .72rem;
       font-weight: 900;
       text-transform: uppercase;
@@ -762,11 +801,11 @@
     }
 
     .topbar {
-      border-color: rgba(225,211,178,.18);
+      border-color: color-mix(in srgb, var(--collector-accent) 22%, transparent);
       background:
-        linear-gradient(110deg, rgba(225,211,178,.16) 0 1px, transparent 1px 16%),
-        radial-gradient(circle at 72% 18%, rgba(147,168,152,.18), transparent 35%),
-        linear-gradient(135deg, rgba(12,15,14,.96), rgba(29,36,33,.9) 54%, rgba(9,11,10,.98));
+        linear-gradient(110deg, color-mix(in srgb, var(--collector-accent) 18%, transparent) 0 1px, transparent 1px 16%),
+        radial-gradient(ellipse at 72% 18%, color-mix(in srgb, var(--collector-accent-2) 20%, transparent), transparent 38%),
+        linear-gradient(135deg, color-mix(in srgb, var(--collector-dark) 96%, black), color-mix(in srgb, var(--collector-surface) 90%, black) 54%, color-mix(in srgb, var(--collector-dark) 98%, black));
     }
     .topbar:before {
       content: "";
@@ -775,47 +814,47 @@
       pointer-events: none;
       background:
         repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 1px, transparent 1px 14px),
-        linear-gradient(90deg, transparent, rgba(225,211,178,.08), transparent);
+        linear-gradient(90deg, transparent, color-mix(in srgb, var(--collector-accent) 12%, transparent), transparent);
       mix-blend-mode: screen;
       opacity: .52;
     }
     .topbar h1 {
       font-family: Georgia, Times New Roman, serif;
       text-transform: none;
-      color: #f4ead7;
+      color: color-mix(in srgb, var(--ink) 90%, var(--collector-accent));
     }
     .topbar .tagline {
       max-width: 690px;
-      color: rgba(232,220,196,.76);
+      color: color-mix(in srgb, var(--muted) 82%, var(--collector-accent));
     }
     .user-panel {
-      border-top: 4px solid rgba(225,211,178,.72);
-      box-shadow: 0 28px 80px rgba(0,0,0,.34), inset 0 0 0 1px rgba(255,255,255,.06);
+      border-top: 4px solid color-mix(in srgb, var(--collector-accent) 76%, transparent);
+      box-shadow: 0 28px 80px rgba(0,0,0,.34), inset 0 0 0 1px color-mix(in srgb, var(--collector-accent) 12%, rgba(255,255,255,.03));
     }
     .btn.primary {
-      background: linear-gradient(135deg, #e8dcc4, #bda775);
-      color: #11130f;
-      border-color: rgba(232,220,196,.78);
-      box-shadow: 0 12px 28px rgba(189,167,117,.12);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 86%, white), var(--collector-accent-2));
+      color: var(--collector-active-ink);
+      border-color: color-mix(in srgb, var(--collector-accent) 80%, white);
+      box-shadow: 0 12px 28px color-mix(in srgb, var(--collector-accent) 18%, transparent);
     }
     .score {
-      border-color: rgba(225,211,178,.16);
+      border-color: color-mix(in srgb, var(--collector-accent) 20%, transparent);
       background:
-        linear-gradient(90deg, rgba(225,211,178,.08), transparent 28%),
-        rgba(28,35,32,.92);
+        linear-gradient(90deg, color-mix(in srgb, var(--collector-accent) 12%, transparent), transparent 28%),
+        color-mix(in srgb, var(--collector-surface) 92%, transparent);
     }
-    .ring .fill { stroke: #d8c393; }
+    .ring .fill { stroke: var(--collector-accent); }
     .metric:before {
-      background: linear-gradient(90deg, #d8c393 0 44%, #6fb18b 44% 72%, #6f9fb1 72% 100%);
+      background: linear-gradient(90deg, var(--collector-accent) 0 44%, var(--collector-accent-2) 44% 72%, var(--collector-accent-3) 72% 100%);
     }
     .workspace-tab.active {
-      background: linear-gradient(135deg, #e8dcc4, #c3ad7b);
-      color: #11100b;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 88%, white), var(--collector-accent-2));
+      color: var(--collector-active-ink);
     }
     .album-spread {
       border: 1px solid rgba(92,72,42,.22);
       background:
-        linear-gradient(90deg, rgba(78,95,86,.42) 0 3px, transparent 3px calc(100% - 3px), rgba(216,195,147,.58) calc(100% - 3px) 100%),
+        linear-gradient(90deg, color-mix(in srgb, var(--collector-accent-2) 48%, transparent) 0 3px, transparent 3px calc(100% - 3px), color-mix(in srgb, var(--collector-accent) 58%, transparent) calc(100% - 3px) 100%),
         linear-gradient(90deg, transparent calc(50% - 1px), rgba(68,52,28,.28) calc(50% - 1px), rgba(68,52,28,.28) calc(50% + 1px), transparent calc(50% + 1px)),
         repeating-linear-gradient(0deg, rgba(0,0,0,.024), rgba(0,0,0,.024) 1px, transparent 1px, transparent 12px),
         #f3ead7;
@@ -831,7 +870,7 @@
     }
     .album-pages .team {
       background:
-        linear-gradient(180deg, rgba(216,195,147,.1), transparent 24%),
+        linear-gradient(180deg, color-mix(in srgb, var(--collector-accent) 13%, transparent), transparent 24%),
         rgba(255,252,241,.88);
     }
     .album-pages .team-head {
@@ -845,7 +884,7 @@
     .album-pages .sticker.have {
       border-style: solid;
       background:
-        linear-gradient(135deg, rgba(216,195,147,.22), transparent 36%),
+        linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 26%, transparent), transparent 36%),
         linear-gradient(145deg, #fff9ed, #dceee1);
     }
     .album-pages .sticker.missing {
@@ -855,24 +894,24 @@
         repeating-linear-gradient(135deg, rgba(177,74,63,.13), rgba(177,74,63,.13) 6px, rgba(255,255,255,.72) 6px, rgba(255,255,255,.72) 12px);
     }
     .sticker .dupe {
-      background: linear-gradient(135deg, #e8dcc4, #c3ad7b);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 86%, white), var(--collector-accent-2));
       box-shadow: 0 6px 12px rgba(0,0,0,.22);
     }
     .trade-hero, .missing-hero {
       background:
-        linear-gradient(100deg, rgba(216,195,147,.14) 0 1px, transparent 1px 100%),
-        linear-gradient(135deg, rgba(216,195,147,.12), rgba(111,159,177,.08));
-      border-color: rgba(225,211,178,.2);
+        linear-gradient(100deg, color-mix(in srgb, var(--collector-accent) 16%, transparent) 0 1px, transparent 1px 100%),
+        linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 15%, transparent), color-mix(in srgb, var(--collector-accent-3) 11%, transparent));
+      border-color: color-mix(in srgb, var(--collector-accent) 24%, transparent);
     }
     .mobile-dock {
-      border-color: rgba(225,211,178,.28);
+      border-color: color-mix(in srgb, var(--collector-accent) 32%, transparent);
       background:
-        linear-gradient(90deg, rgba(216,195,147,.12), transparent 20%),
-        rgba(12,15,13,.92);
+        linear-gradient(90deg, color-mix(in srgb, var(--collector-accent) 15%, transparent), transparent 20%),
+        color-mix(in srgb, var(--collector-dark) 92%, transparent);
     }
     .mobile-dock button.active {
-      background: linear-gradient(135deg, #e8dcc4, #c3ad7b);
-      color: #11100b;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--collector-accent) 88%, white), var(--collector-accent-2));
+      color: var(--collector-active-ink);
     }
 
     .modal {
@@ -890,8 +929,8 @@
       width: min(760px, 100%);
       max-height: min(86vh, 760px);
       overflow: auto;
-      background: #151b18;
-      border: 1px solid rgba(231,187,85,.38);
+      background: color-mix(in srgb, var(--collector-surface) 94%, black);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 42%, transparent);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 16px;
@@ -921,8 +960,8 @@
     }
     .toast-item {
       padding: 10px 12px;
-      background: #151b18;
-      border: 1px solid rgba(231,187,85,.38);
+      background: color-mix(in srgb, var(--collector-surface) 94%, black);
+      border: 1px solid color-mix(in srgb, var(--collector-accent) 42%, transparent);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       color: var(--ink);
@@ -1152,10 +1191,30 @@
   <script>
     const USERS = ["Claus", "Holger", "Karl-Eric", "Sam"];
     const COLLECTORS = {
-      Claus: { initials: "CL", accent: "#d8c393", accent2: "#7fa48f", note: "Workbook seed loaded" },
-      Holger: { initials: "HO", accent: "#8fb6c9", accent2: "#d8c393", note: "Ready for import" },
-      "Karl-Eric": { initials: "KE", accent: "#b89a7b", accent2: "#7f9c8b", note: "Ready for import" },
-      Sam: { initials: "SA", accent: "#9f94bd", accent2: "#d8c393", note: "Ready for import" }
+      Claus: {
+        initials: "CL", accent: "#d8c393", accent2: "#7fa48f", accent3: "#6f9fb1",
+        ink: "#f6f1e7", muted: "#aab1a8", paper: "#141817", panel: "#1c2320", panel2: "#232c28", line: "#344038",
+        dark: "#090b0a", mid: "#121815", surface: "#1c2320", surface2: "#232c28", activeInk: "#10120f",
+        note: "Workbook seed loaded"
+      },
+      Holger: {
+        initials: "HO", accent: "#8fb6c9", accent2: "#63c8bb", accent3: "#d8c393",
+        ink: "#eef7f8", muted: "#9eb4b7", paper: "#101a1e", panel: "#18252b", panel2: "#21323a", line: "#31515c",
+        dark: "#071014", mid: "#101b20", surface: "#18252b", surface2: "#21323a", activeInk: "#071014",
+        note: "Ready for import"
+      },
+      "Karl-Eric": {
+        initials: "KE", accent: "#c59a68", accent2: "#899d70", accent3: "#dcc9a2",
+        ink: "#fbf0df", muted: "#b8a992", paper: "#18140f", panel: "#241d14", panel2: "#2d261a", line: "#554530",
+        dark: "#100d09", mid: "#1b1711", surface: "#241d14", surface2: "#2d261a", activeInk: "#11100b",
+        note: "Ready for import"
+      },
+      Sam: {
+        initials: "SA", accent: "#b4a0d8", accent2: "#e8a1ba", accent3: "#d8c393",
+        ink: "#f7eefc", muted: "#b8a8c2", paper: "#17111d", panel: "#231a2a", panel2: "#2d2236", line: "#503f62",
+        dark: "#0f0b14", mid: "#18121d", surface: "#231a2a", surface2: "#2d2236", activeInk: "#120d18",
+        note: "Ready for import"
+      }
     };
     const STORAGE_KEY = "panini-wc2026-collection-hub-v1";
     const CHECKLIST = window.CHECKLIST_INSIDER || { source: "Checklist Insider", sourceUrl: "", stickers: {} };
@@ -1449,8 +1508,24 @@
     function renderStats() {
       const s = stats();
       const profile = COLLECTORS[currentUser] || COLLECTORS.Claus;
-      document.documentElement.style.setProperty("--collector-accent", profile.accent);
-      document.documentElement.style.setProperty("--collector-accent-2", profile.accent2);
+      Object.entries({
+        "--collector-accent": profile.accent,
+        "--collector-accent-2": profile.accent2,
+        "--collector-accent-3": profile.accent3,
+        "--collector-active-ink": profile.activeInk,
+        "--collector-dark": profile.dark,
+        "--collector-mid": profile.mid,
+        "--collector-surface": profile.surface,
+        "--collector-surface-2": profile.surface2,
+        "--ink": profile.ink,
+        "--muted": profile.muted,
+        "--paper": profile.paper,
+        "--panel": profile.panel,
+        "--panel-2": profile.panel2,
+        "--line": profile.line,
+        "--gold": profile.accent,
+        "--blue": profile.accent3
+      }).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
       els.collectorIdentity.innerHTML = `<div class="collector-avatar">${escapeHtml(profile.initials)}</div><div><div class="collector-name">${escapeHtml(currentUser)}</div><div class="collector-note">${escapeHtml(profile.note)} · ${s.pct}% complete</div></div>`;
       $("collectorHeadline").textContent = `${currentUser}'s album`;
       $("collectorSubline").textContent = currentUser === "Claus"
