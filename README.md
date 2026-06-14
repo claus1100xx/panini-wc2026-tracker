@@ -1,6 +1,6 @@
 # Panini World Cup 2026 Tracker
 
-A static GitHub Pages web app for tracking the 2026 World Cup Panini sticker collection across five collector slots: Claus, Holger, Karl-Eric, Sam, and Daniel/Frank.
+A static GitHub Pages web app for tracking the 2026 World Cup Panini sticker collection across six collector slots: Claus, Holger, Karl-Eric, Sam, Daniel/Frank, and Lucia.
 
 ## Features
 
