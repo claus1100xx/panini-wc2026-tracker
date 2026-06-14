@@ -1048,6 +1048,7 @@
     @media print {
       @page { size: letter portrait; margin: .35in; }
       * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      html,
       body {
         background: #fff !important;
         color: #1d2327 !important;
@@ -1057,12 +1058,14 @@
       .print-sheet {
         display: block !important;
         width: 100%;
+        background: #fff;
         color: #1d2327;
         font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
       }
       .print-page {
         width: 100%;
         margin: 0 auto;
+        background: #fff;
       }
       .print-title {
         display: flex;
@@ -1074,13 +1077,14 @@
       }
       .print-title h1 {
         margin: 0;
+        color: #1d2327 !important;
         font-size: 18pt;
         line-height: 1;
       }
       .print-title span {
         font-size: 9pt;
         font-weight: 800;
-        color: #34566d;
+        color: #34566d !important;
       }
       .print-table {
         width: 100%;
@@ -1089,12 +1093,12 @@
         font-size: 10.2pt;
         line-height: 1.12;
       }
-      .print-table col.section { width: 26%; }
-      .print-table col.code { width: 13%; }
-      .print-table col.category { width: 21%; }
-      .print-table col.stickers { width: 22%; }
-      .print-table col.count { width: 7%; }
-      .print-table col.page { width: 11%; }
+      .print-table col.print-col-section { width: 22%; }
+      .print-table col.print-col-code { width: 13%; }
+      .print-table col.print-col-category { width: 23%; }
+      .print-table col.print-col-stickers { width: 24%; }
+      .print-table col.print-col-count { width: 7%; }
+      .print-table col.print-col-page { width: 11%; }
       .print-table th {
         padding: 6px 5px;
         background: #245a84;
@@ -1103,10 +1107,12 @@
         font-size: 10pt;
         font-weight: 900;
         text-align: center;
+        white-space: nowrap;
       }
       .print-table td {
         padding: 4px 5px;
         border: 1px solid #adb5ba;
+        background: #fff;
         vertical-align: middle;
       }
       .print-table tbody tr:nth-child(odd) td { background: #eaf4f8; }
@@ -2350,7 +2356,7 @@
         </div>
         <table class="print-table">
           <colgroup>
-            <col class="section"><col class="code"><col class="category"><col class="stickers"><col class="count"><col class="page">
+            <col class="print-col-section"><col class="print-col-code"><col class="print-col-category"><col class="print-col-stickers"><col class="print-col-count"><col class="print-col-page">
           </colgroup>
           <thead>
             <tr><th>Section</th><th>Panini Code</th><th>Country / Category</th><th>Missing Stickers</th><th>Count</th><th>Album Page</th></tr>
