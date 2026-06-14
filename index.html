@@ -1040,8 +1040,99 @@
     @keyframes toast { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes fade { to { opacity: 0; transform: translateY(8px); } }
 
+    .print-sheet { display: none; }
+
     .hidden { display: none !important; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+    @media print {
+      @page { size: letter portrait; margin: .35in; }
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      body {
+        background: #fff !important;
+        color: #1d2327 !important;
+        padding: 0 !important;
+      }
+      body > :not(.print-sheet) { display: none !important; }
+      .print-sheet {
+        display: block !important;
+        width: 100%;
+        color: #1d2327;
+        font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
+      }
+      .print-page {
+        width: 100%;
+        margin: 0 auto;
+      }
+      .print-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 12px;
+        margin: 0 0 8px;
+        color: #1d2327;
+      }
+      .print-title h1 {
+        margin: 0;
+        font-size: 18pt;
+        line-height: 1;
+      }
+      .print-title span {
+        font-size: 9pt;
+        font-weight: 800;
+        color: #34566d;
+      }
+      .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 10.2pt;
+        line-height: 1.12;
+      }
+      .print-table col.section { width: 26%; }
+      .print-table col.code { width: 13%; }
+      .print-table col.category { width: 21%; }
+      .print-table col.stickers { width: 22%; }
+      .print-table col.count { width: 7%; }
+      .print-table col.page { width: 11%; }
+      .print-table th {
+        padding: 6px 5px;
+        background: #245a84;
+        border: 1px solid #fff;
+        color: #fff;
+        font-size: 10pt;
+        font-weight: 900;
+        text-align: center;
+      }
+      .print-table td {
+        padding: 4px 5px;
+        border: 1px solid #adb5ba;
+        vertical-align: middle;
+      }
+      .print-table tbody tr:nth-child(odd) td { background: #eaf4f8; }
+      .print-table tbody tr.special-row td { background: #fff2c8; }
+      .print-table td.section-cell,
+      .print-table td.code-cell {
+        font-weight: 900;
+      }
+      .print-table td.count-cell,
+      .print-table td.page-cell {
+        text-align: center;
+      }
+      .print-table tfoot td {
+        background: #d8eaf6;
+        border-top: 4px solid #245a84;
+        font-weight: 900;
+        text-align: center;
+      }
+      .print-empty {
+        border: 2px solid #245a84;
+        padding: 24px;
+        text-align: center;
+        font-size: 16pt;
+        font-weight: 900;
+      }
+    }
 
     @media (max-width: 1120px) {
       .topbar, .dashboard, .layout { grid-template-columns: 1fr; }
@@ -1202,6 +1293,7 @@
           <div class="actions" style="margin-bottom:8px">
             <button class="btn" id="copyNeed">Copy</button>
             <button class="btn" id="copyTrade">Copy Share</button>
+            <button class="btn" id="printNeed">Print</button>
           </div>
           <div id="needList" class="mini-list"></div>
         </section>
@@ -1333,6 +1425,7 @@
     </div>
   </div>
 
+  <div id="printSheet" class="print-sheet" aria-hidden="true"></div>
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <script src="checklist-insider-data.js"></script>
@@ -1467,6 +1560,7 @@
       searchInput: $("searchInput"), grid: $("collectionGrid"), needList: $("needList"), tradeList: $("tradeList"),
       teamModal: $("teamModal"), modalTitle: $("modalTitle"), modalSub: $("modalSub"), modalGrid: $("modalGrid"),
       collectorIdentity: $("collectorIdentity"), progressWall: $("progressWall"), importMissingInput: $("importMissingInput"),
+      printSheet: $("printSheet"),
       syncBadge: $("syncBadge"), syncModal: $("syncModal"), syncState: $("syncState"), syncLast: $("syncLast"),
       syncProvider: $("syncProvider"), supabaseFields: $("supabaseFields"), gistFields: $("gistFields"),
       supabaseUrl: $("supabaseUrl"), supabaseKey: $("supabaseKey"), syncCode: $("syncCode"),
@@ -1782,6 +1876,7 @@
       $("quickDupe").addEventListener("click", () => quickApply("dupe"));
       $("copyNeed").addEventListener("click", () => copyText(needText()));
       $("copyTrade").addEventListener("click", () => copyText(tradeText()));
+      $("printNeed").addEventListener("click", printMissingList);
       $("exportBtn").addEventListener("click", exportExcel);
       $("importMissingBtn").addEventListener("click", () => els.importMissingInput.click());
       els.importMissingInput.addEventListener("change", importMissingFile);
@@ -1807,6 +1902,7 @@
       $("openPackNow").addEventListener("click", openPack);
       $("resetUserBtn").addEventListener("click", resetCurrentUser);
       $("factoryBtn").addEventListener("click", factoryReset);
+      window.addEventListener("afterprint", clearPrintSheet);
     }
 
     function setWorkspace(next) {
@@ -1997,7 +2093,10 @@
           <h2>Missing Desk</h2>
           <p>${rows.length} stickers are still on ${currentUser}'s chase list across ${new Set(rows.map(row => row.team.code)).size} teams, ordered by album group.</p>
         </div>
-        <button class="btn primary" data-copy-missing>Copy Need List</button>
+        <div class="actions">
+          <button class="btn primary" data-copy-missing>Copy Need List</button>
+          <button class="btn" data-print-missing>Print</button>
+        </div>
       </section>` + ([...byGroup.entries()]
         .sort(([a], [b]) => groupRank(a) - groupRank(b))
         .map(([group, groupTeams]) => `<div class="missing-group-title">${escapeHtml(groupLabel(group))}</div>${[...groupTeams.values()].map(teamRows => {
@@ -2012,6 +2111,7 @@
         }).join("")}`)
         .join("") || `<div class="empty">No missing stickers in this view.</div>`);
       els.grid.querySelector("[data-copy-missing]")?.addEventListener("click", () => copyText(needText()));
+      els.grid.querySelector("[data-print-missing]")?.addEventListener("click", printMissingList);
       els.grid.querySelectorAll("[data-sticker]").forEach(btn => btn.addEventListener("click", () => handleStickerClick(btn.dataset.code, Number(btn.dataset.number))));
     }
 
@@ -2192,6 +2292,90 @@
 
     function needText(user = currentUser) {
       return compactGroupedCodeText(missingRows(user), `${user} needs:`, `${user} has no missing stickers recorded.`, row => compactNeedNumber(row.team, row.number));
+    }
+
+    function printableMissingRows(user = currentUser) {
+      const byCode = new Map();
+      missingRows(user).forEach(row => {
+        const printCode = compactNeedCode(row.team);
+        const key = printCode === "FWC" ? "FWC" : row.team.code;
+        if (!byCode.has(key)) {
+          byCode.set(key, {
+            section: groupLabel(row.team.group),
+            group: row.team.group,
+            groupOrder: groupRank(row.team.group),
+            teamOrder: TEAMS.indexOf(row.team),
+            code: printCode,
+            category: printCode === "FWC" ? "Special Stickers" : printCode === "CC" ? "Coke" : row.team.name,
+            page: printCode === "FWC" ? 1 : row.team.page,
+            numbers: []
+          });
+        }
+        const item = byCode.get(key);
+        item.teamOrder = Math.min(item.teamOrder, TEAMS.indexOf(row.team));
+        item.page = item.code === "FWC" ? 1 : Math.min(item.page, row.team.page);
+        item.numbers.push(row.number);
+      });
+      return [...byCode.values()].map(item => ({
+        ...item,
+        numbers: [...new Set(item.numbers)].sort((a, b) => a - b)
+      })).sort((a, b) => a.groupOrder - b.groupOrder || a.teamOrder - b.teamOrder || a.code.localeCompare(b.code));
+    }
+
+    function printableStickerList(row) {
+      const values = row.numbers.join(", ");
+      return row.code === "FWC" || row.code === "CC" ? `${row.code} ${values}` : values;
+    }
+
+    function printMissingTableHtml(user = currentUser) {
+      const rows = printableMissingRows(user);
+      const total = rows.reduce((sum, row) => sum + row.numbers.length, 0);
+      const generated = new Intl.DateTimeFormat([], { dateStyle:"medium" }).format(new Date());
+      if (!rows.length) {
+        return `<section class="print-page">
+          <div class="print-title"><h1>${escapeHtml(user)} Missing Stickers</h1><span>${escapeHtml(generated)}</span></div>
+          <div class="print-empty">No missing stickers recorded.</div>
+        </section>`;
+      }
+      return `<section class="print-page">
+        <div class="print-title">
+          <h1>${escapeHtml(user)} Missing Stickers</h1>
+          <span>${total} missing stickers - ${escapeHtml(generated)}</span>
+        </div>
+        <table class="print-table">
+          <colgroup>
+            <col class="section"><col class="code"><col class="category"><col class="stickers"><col class="count"><col class="page">
+          </colgroup>
+          <thead>
+            <tr><th>Section</th><th>Panini Code</th><th>Country / Category</th><th>Missing Stickers</th><th>Count</th><th>Album Page</th></tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `<tr class="${row.group === "Special" ? "special-row" : ""}">
+              <td class="section-cell">${escapeHtml(row.section)}</td>
+              <td class="code-cell">${escapeHtml(row.code)}</td>
+              <td>${escapeHtml(row.category)}</td>
+              <td>${escapeHtml(printableStickerList(row))}</td>
+              <td class="count-cell">${row.numbers.length}</td>
+              <td class="page-cell">${row.page}</td>
+            </tr>`).join("")}
+          </tbody>
+          <tfoot>
+            <tr><td colspan="4">TOTAL MISSING STICKERS</td><td>${total}</td><td></td></tr>
+          </tfoot>
+        </table>
+      </section>`;
+    }
+
+    function printMissingList() {
+      els.printSheet.innerHTML = printMissingTableHtml(currentUser);
+      els.printSheet.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(() => window.print());
+    }
+
+    function clearPrintSheet() {
+      if (!els.printSheet) return;
+      els.printSheet.innerHTML = "";
+      els.printSheet.setAttribute("aria-hidden", "true");
     }
 
     function duplicateRows(user = currentUser) {
