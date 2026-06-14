@@ -1170,7 +1170,8 @@
       <div>
         <span class="label">Mode</span>
         <div class="tabs" role="tablist">
-          <button class="tab active" data-mode="mark">Mark</button>
+          <button class="tab active" data-mode="collect">Collect</button>
+          <button class="tab" data-mode="mark">Cycle</button>
           <button class="tab" data-mode="dupe">Dupe</button>
           <button class="tab" data-mode="trade">Trade</button>
         </div>
@@ -1455,7 +1456,7 @@
     let seedMigrationApplied = false;
     let state = loadState();
     let currentUser = state.currentUser || "Claus";
-    let mode = "mark";
+    let mode = "collect";
     let workspace = "album";
     let activeTeam = null;
     let tradeHitKeys = new Set();
@@ -1755,7 +1756,13 @@
       document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => {
         mode = btn.dataset.mode;
         document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
-        toast(mode === "mark" ? "Click stickers to cycle status." : mode === "dupe" ? "Click stickers to add duplicates." : "Trade mode highlights useful swaps.");
+        const modeMessages = {
+          collect: "Click stickers to mark collected.",
+          mark: "Click stickers to cycle status.",
+          dupe: "Click stickers to add duplicates.",
+          trade: "Trade mode highlights useful swaps."
+        };
+        toast(modeMessages[mode] || modeMessages.collect);
         render();
       }));
       document.querySelectorAll("[data-workspace]").forEach(btn => btn.addEventListener("click", () => setWorkspace(btn.dataset.workspace)));
@@ -2091,8 +2098,10 @@
       } else if (mode === "trade") {
         s.dupes = Math.max(0, Number(s.dupes || 0) - 1);
         toast(s.dupes ? `Duplicate removed: ${code} ${number}` : `No duplicates left for ${code} ${number}`);
-      } else {
+      } else if (mode === "mark") {
         s.status = s.status === "unknown" ? "have" : s.status === "have" ? "missing" : "unknown";
+      } else {
+        s.status = "have";
       }
       saveState();
       render();
