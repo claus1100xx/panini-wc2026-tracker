@@ -1448,7 +1448,7 @@
         initials: "HO", accent: "#8fb6c9", accent2: "#63c8bb", accent3: "#d8c393",
         ink: "#eef7f8", muted: "#9eb4b7", paper: "#101a1e", panel: "#18252b", panel2: "#21323a", line: "#31515c",
         dark: "#071014", mid: "#101b20", surface: "#18252b", surface2: "#21323a", activeInk: "#071014",
-        note: "Ready for import"
+        note: "Seed list loaded"
       },
       "Karl-Eric": {
         initials: "KE", accent: "#c59a68", accent2: "#899d70", accent3: "#dcc9a2",
@@ -1544,6 +1544,22 @@
     const CLAUS_MISSING = {
       MEX:[13], SUI:[13], TUR:[13], CC:[1,4,5,10]
     };
+    const HOLGER_MISSING_VERSION = "2026-06-14-holger-list-v1";
+    const HOLGER_MISSING = {
+      FWC_SPECIAL:[1,2,5,6], MEX:[5,7,12,17], RSA:[1,8,10,16,17,18], KOR:[11,13,18], CZE:[4,8,13,14,17,19],
+      CAN:[3,4,7,12,16,18], BIH:[1,8,17,19], QAT:[20], SUI:[2,4,11,13,14],
+      BRA:[8,10,14], MAR:[1,11,18,20], HAI:[11,13,18,19], SCO:[5,11,18],
+      USA:[18], PAR:[1,2,12], AUS:[1,3,14], TUR:[2,10,13],
+      GER:[13,14,17], CUW:[2,3,8,10,13], CIV:[5,8,9,12], ECU:[2,3,11,17,18,19],
+      NED:[2,20], JPN:[2,10,17], SWE:[8,10,11,15], TUN:[16,19],
+      BEL:[2,11], EGY:[6,14,16], IRN:[11,17,19], NZL:[3,4,5,6,8,10,12,13,16,19],
+      ESP:[11,14,15], CPV:[4,5,7,11,16,17,18], KSA:[14], URU:[4,9,18],
+      FRA:[1,8], SEN:[7,16,18], IRQ:[1,2,5,7,8,11,12], NOR:[6,16],
+      ARG:[4,10], ALG:[13,18,20], AUT:[4,12,13,15,17], JOR:[1,13,14,17,18,19],
+      POR:[16], COD:[5,8,10,14,19], UZB:[11,19], COL:[1,11,19],
+      ENG:[5,10,11,17,20], CRO:[2,5,7,12,15], GHA:[1,5,7], PAN:[8,12,20],
+      FWC_HISTORY:[9,11,18], CC:[4,5,6,7,8,12]
+    };
 
     const totalStickers = TEAMS.reduce((sum, team) => sum + team.total, 0);
     const stickerPool = TEAMS.flatMap(team => Array.from({ length: team.total }, (_, i) => ({ code: team.code, number: i + 1 })));
@@ -1574,13 +1590,13 @@
       syncRoomLink: $("syncRoomLink"), syncAdvanced: $("syncAdvanced")
     };
 
-    function makeUser(seedClaus) {
+    function makeUser(seedMissing) {
       const stickers = {};
       TEAMS.forEach(team => {
         stickers[team.code] = {};
         for (let i = 1; i <= team.total; i++) {
-          const missing = seedClaus && CLAUS_MISSING[team.code]?.includes(i);
-          stickers[team.code][i] = { status: seedClaus ? (missing ? "missing" : "have") : "unknown", dupes: 0 };
+          const missing = seedMissing && seedMissing[team.code]?.includes(i);
+          stickers[team.code][i] = { status: seedMissing ? (missing ? "missing" : "have") : "unknown", dupes: 0 };
         }
       });
       return { stickers, packs: 0, updatedAt: new Date().toISOString() };
@@ -1588,8 +1604,8 @@
 
     function defaultState() {
       const users = {};
-      USERS.forEach(name => users[name] = makeUser(name === "Claus"));
-      return { version: 1, currentUser: "Claus", seedVersions: { Claus: CLAUS_MISSING_VERSION }, users };
+      USERS.forEach(name => users[name] = makeUser(seedForUser(name)));
+      return { version: 1, currentUser: "Claus", seedVersions: { Claus: CLAUS_MISSING_VERSION, Holger: HOLGER_MISSING_VERSION }, users };
     }
 
     function getDeviceId() {
@@ -1685,24 +1701,45 @@
       return true;
     }
 
-    function applyClausMissingSeed(targetState) {
+    function seedForUser(name) {
+      if (name === "Claus") return CLAUS_MISSING;
+      if (name === "Holger") return HOLGER_MISSING;
+      return null;
+    }
+
+    function seedVersionForUser(name) {
+      if (name === "Claus") return CLAUS_MISSING_VERSION;
+      if (name === "Holger") return HOLGER_MISSING_VERSION;
+      return "";
+    }
+
+    function applyMissingSeed(targetState, name) {
+      const version = seedVersionForUser(name);
+      const missingSeed = seedForUser(name);
+      if (!version || !missingSeed) return targetState;
       targetState.seedVersions = targetState.seedVersions || {};
-      if (targetState.seedVersions.Claus === CLAUS_MISSING_VERSION) return targetState;
-      const claus = targetState.users?.Claus;
-      if (!claus?.stickers) return targetState;
+      if (targetState.seedVersions[name] === version) return targetState;
+      const user = targetState.users?.[name];
+      if (!user?.stickers) return targetState;
       TEAMS.forEach(team => {
-        const missing = new Set(CLAUS_MISSING[team.code] || []);
-        if (!claus.stickers[team.code]) claus.stickers[team.code] = {};
+        const missing = new Set(missingSeed[team.code] || []);
+        if (!user.stickers[team.code]) user.stickers[team.code] = {};
         for (let i = 1; i <= team.total; i++) {
-          const item = claus.stickers[team.code][i] || { status: "have", dupes: 0 };
+          const item = user.stickers[team.code][i] || { status: "have", dupes: 0 };
           item.status = missing.has(i) ? "missing" : "have";
           item.dupes = Math.max(0, Number(item.dupes || 0));
-          claus.stickers[team.code][i] = item;
+          user.stickers[team.code][i] = item;
         }
       });
-      claus.updatedAt = new Date().toISOString();
-      targetState.seedVersions.Claus = CLAUS_MISSING_VERSION;
+      user.updatedAt = new Date().toISOString();
+      targetState.seedVersions[name] = version;
       seedMigrationApplied = true;
+      return targetState;
+    }
+
+    function applySeededMissingLists(targetState) {
+      applyMissingSeed(targetState, "Claus");
+      applyMissingSeed(targetState, "Holger");
       return targetState;
     }
 
@@ -1711,7 +1748,7 @@
       const normalized = { ...parsed, version: 1, users: { ...parsed.users } };
       if (!USERS.includes(normalized.currentUser)) normalized.currentUser = "Claus";
       USERS.forEach(name => {
-        const base = makeUser(name === "Claus");
+        const base = makeUser(seedForUser(name));
         const incoming = normalized.users[name] || {};
         const user = {
           ...base,
@@ -1732,7 +1769,7 @@
         if (!user.updatedAt) user.updatedAt = base.updatedAt;
         normalized.users[name] = user;
       });
-      return applyClausMissingSeed(normalized);
+      return applySeededMissingLists(normalized);
     }
 
     function loadState() {
@@ -1956,8 +1993,8 @@
       }).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
       els.collectorIdentity.innerHTML = `<div class="collector-avatar">${escapeHtml(profile.initials)}</div><div><div class="collector-name">${escapeHtml(currentUser)}</div><div class="collector-note">${escapeHtml(profile.note)} · ${s.pct}% complete</div></div>`;
       $("collectorHeadline").textContent = `${currentUser}'s album`;
-      $("collectorSubline").textContent = currentUser === "Claus"
-        ? "Seeded from Panini_World_Cup_Missing_Stickers.xlsx. Sticker names sourced from Checklist Insider."
+      $("collectorSubline").textContent = seedForUser(currentUser)
+        ? "Seeded missing list loaded. Sticker names sourced from Checklist Insider."
         : "No workbook seed was applied. Sticker names sourced from Checklist Insider.";
       $("pct").textContent = `${s.pct}%`;
       $("haveMetric").textContent = s.have;
